@@ -21,8 +21,27 @@ class CategoriaController extends Controller
       ]);
     }
 
-    public function get()
+    public function get($id = null)
     {
-      return Categoria::get();
+      return Categoria::get($id);
+    }
+
+    public function update(Request $request)
+    {
+      Categoria::actualiza($request);
+      return response([
+        "status" => "ok",
+        "message" => "Actualizado correctamente"
+      ]);
+    }
+
+
+    public function deleteAll(Request $request)
+    {
+      Categoria::eraseAll($request);
+      return response([
+        "status" => "ok",
+        "message" => "Eliminado correctamente"
+      ]);
     }
 }

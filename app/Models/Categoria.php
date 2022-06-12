@@ -48,6 +48,49 @@ class Categoria extends Model
 
     public static function get($id='')
     {
-      return DB::table("Categoria")->get();
+      if (!$id) {
+        return DB::table("Categoria")->get();
+      }
+
+      $categoria = DB::table("Categoria")->where('id', $id)->first();
+      if ($categoria) {
+        $main = DB::table('Imagen')->where('id', $categoria->idImagenMain)->first();
+        $categoria->mainImage = $main ? $main->image : null;
+        $cover = DB::table('Imagen')->where('id', $categoria->idImagenCover)->first();
+        $categoria->coverImage = $cover ? $cover->image : null;
+        $categoria->departamentos = DB::table("CategoriaDepartamento AS cd")
+          ->join("Departamento AS d", "d.id", "cd.idDepartamento")
+          ->where('cd.idCategoria', $categoria->id)->get();
+      }
+      return $categoria;
+    }
+
+    public static function actualiza($request)
+    {
+      $mainImage = $request->mainImage ? $request->mainImage[0] : null;
+      $coverImage = $request->coverImage ? $request->coverImage[0] : null;
+
+      $update = array(
+        "categoria" => $request->categoria,
+      );
+
+      if ($mainImage) {
+        $update["idImagenMain"] = Imagen::upload($mainImage);
+      }
+      if ($coverImage) {
+        $update["idImagenCover"] = Imagen::upload($coverImage);
+      }
+
+      DB::table("Categoria")->where('id', $request->id)->update($update);
+
+      foreach ($request->departamentos as $key => $depto) {
+        self::createCatDepto($request->id, $depto);
+      }
+    }
+
+    public static function eraseAll($request)
+    {
+      DB::table("CategoriaDepartamento")->where('idCategoria', $request->id)->delete();
+      DB::table("Categoria")->where('id', $request->id)->delete();
     }
 }

@@ -24,5 +24,7 @@ Route::group(["prefix" => "/departamento"], function() {
 // Categorias
 Route::group(["prefix" => "/categoria"], function() {
   Route::post("/create", "CategoriaController@create");
+  Route::post("/update", "CategoriaController@update");
   Route::get("/get/{id?}", "CategoriaController@get");
+  Route::post("/deleteAll", "CategoriaController@deleteAll");
 });
