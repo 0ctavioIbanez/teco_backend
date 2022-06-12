@@ -27,4 +27,5 @@ Route::group(["prefix" => "/categoria"], function() {
   Route::post("/update", "CategoriaController@update");
   Route::get("/get/{id?}", "CategoriaController@get");
   Route::post("/deleteAll", "CategoriaController@deleteAll");
+  Route::post("/removeImage", "CategoriaController@removeImage");
 });

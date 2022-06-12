@@ -82,6 +82,7 @@ class Categoria extends Model
       }
 
       DB::table("Categoria")->where('id', $request->id)->update($update);
+      DB::table("CategoriaDepartamento")->where('idCategoria', $request->id)->delete();
 
       foreach ($request->departamentos as $key => $depto) {
         self::createCatDepto($request->id, $depto);
@@ -92,5 +93,18 @@ class Categoria extends Model
     {
       DB::table("CategoriaDepartamento")->where('idCategoria', $request->id)->delete();
       DB::table("Categoria")->where('id', $request->id)->delete();
+    }
+
+    public static function removeImage($request)
+    {
+      $update = [];
+      if ($request->type == 'cover') {
+        $update["idImagenCover"] = null;
+      } else {
+        $update["idImagenMain"] = null;
+      }
+
+      DB::table("Imagen")->where('id', $request->idImage)->delete();
+      DB::table("Categoria")->where('id', $request->id)->update($update);
     }
 }

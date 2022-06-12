@@ -44,4 +44,14 @@ class CategoriaController extends Controller
         "message" => "Eliminado correctamente"
       ]);
     }
+
+    public function removeImage(Request $request)
+    {
+      $test = Categoria::removeImage($request);
+      return response([
+        "status" => "ok",
+        "message" => "Imágen eliminada",
+        "debug" => $test
+      ]);
+    }
 }
