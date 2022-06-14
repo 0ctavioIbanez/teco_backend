@@ -6,12 +6,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
-class Color extends Model
+class Talla extends Model
 {
     use HasFactory;
 
     public static function get($id='')
     {
-      return DB::table("Color")->get();
+      return DB::table("Talla")->get();
     }
 }

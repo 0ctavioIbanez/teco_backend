@@ -29,3 +29,28 @@ Route::group(["prefix" => "/categoria"], function() {
   Route::post("/deleteAll", "CategoriaController@deleteAll");
   Route::post("/removeImage", "CategoriaController@removeImage");
 });
+
+// Colores
+Route::group(["prefix" => "/color"], function() {
+  Route::get("/get", "ColorController@get");
+});
+
+// Tallas
+Route::group(["prefix" => "/talla"], function() {
+  Route::get("/get", "TallaController@get");
+});
+
+// Tags
+Route::group(["prefix" => "/tags"], function() {
+  Route::get("/get", "TagsController@get");
+});
+
+// Codigos
+Route::group(["prefix" => "/code"], function() {
+  Route::get("/generate", "CodeController@generate");
+});
+
+// Producto
+Route::group(["prefix" => "/producto"], function() {
+  Route::post("/create", "ProductoController@create");
+});

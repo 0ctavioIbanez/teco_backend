@@ -3,14 +3,14 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Color;
+use App\Models\Talla;
 
-class ColorController extends Controller
+class TallaController extends Controller
 {
     public function get($id='')
     {
       return response(
-        Color::get($id)
+        Talla::get()
       );
     }
 }
