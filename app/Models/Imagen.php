@@ -40,6 +40,6 @@ class Imagen extends Model
       $thumb = base64_encode($image);
       unlink($path."thumb.jpg");
 
-      return $thumb;
+      return "data:image/png;base64, $thumb";
     }
 }

@@ -24,4 +24,9 @@ class ProductoController extends Controller
         "message" => "Producto creado correctamente",
       ]);
     }
+
+    public function get($id=null)
+    {
+      return response(Producto::get($id));
+    }
 }
