@@ -54,4 +54,5 @@ Route::group(["prefix" => "/code"], function() {
 Route::group(["prefix" => "/producto"], function() {
   Route::post("/create", "ProductoController@create");
   Route::get("/get/{id?}", "ProductoController@get");
+  Route::post("/search", "ProductoController@search");
 });

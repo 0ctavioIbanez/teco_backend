@@ -101,7 +101,7 @@ class Producto extends Model
         DB::table("ProductoColor")->insert(["idProducto" => $idProducto, "idColor" => $idColor]);
       }
 
-      DB::table("Modelos")->insert([
+      $idModelo = DB::table("Modelos")->insertGetId([
         "idProducto" => $idProducto,
         "stock" => $request["stock"],
         "visibleSinStock" => $request["visibleSinStock"],
@@ -109,6 +109,14 @@ class Producto extends Model
         "costoExtra" => $request["costoExtra"],
         "precioExtra" => $request["precioExtra"],
       ]);
+
+      // Imágenes
+      foreach ($request['images'] as $key => $image) {
+        DB::table("ModelosImagen")->insert([
+          "idModelo" => $idModelo,
+          "idImagen" => Imagen::upload($image)
+        ]);
+      }
     }
 
     public static function get($id)
@@ -135,5 +143,109 @@ class Producto extends Model
         }
         return $results;
       }
+
+      $producto = $producto->where('id', $id)->first();
+      $producto->departamentos = DB::table("ProductoDepartamento AS pd")->select("d.*", "i.image")->join('Departamento AS d', 'd.id', 'pd.idDepartamento')
+                                  ->leftJoin("Imagen as i", "i.id", "d.idImagenMain")->where('pd.idProducto', $id)->get();
+
+      $producto->categorias = DB::table("ProductoCategoria as pc")->select("c.*", "i.image")->join("Categoria as c", 'c.id', 'pc.idCategoria')
+                              ->leftJoin('Imagen as i', "i.id", "c.idImagenMain")->where('pc.idProducto', $id)->get();
+
+      $producto->tags = DB::table("ProductoTag as pt")->select("t.*")->join("Tag as t", 't.id', 'pt.idTag')->where('pt.idProducto', $id)->get();
+      $producto->tallas = DB::table("ProductoTalla as pt")->select("t.*")->join("Talla as t", "t.id", "pt.idTalla")->where('pt.idProducto', $id)->get();
+      $producto->colores = DB::table("ProductoColor as pc")->select("c.*")->join('Color as c', 'c.id', 'pc.idColor')->where('pc.idProducto', $id)->get();
+      $producto->imagenes = DB::table("ProductoImagen as pi")->select("i.image")->join("Imagen as i", "i.id", "pi.idImagen")->where('pi.idProducto', $id)->get();
+      $producto->modelos = DB::table("Modelos as m")->select("m.*", "i.image")->leftJoin("ModelosImagen as mi", "m.id", "mi.idModelo")
+                          ->leftJoin("Imagen as i", "i.id", "mi.idImagen")->where("m.idProducto", $id)->get();
+      return ["details" => $producto];
+    }
+
+    public static function search($request)
+    {
+      $page = $request->page;
+      $limit = 20;
+      $response = [];
+      $temps = [];
+
+      $result = DB::table("Producto as p")
+      ->select("p.nombre", "p.precio", "p.costo", "p.descripcion", "p.codigo", "p.id as id","pc.idColor", "c.color", "pt.idTalla", "t.talla", "pd.idDepartamento", "pca.idCategoria")
+      // Color
+      ->leftJoin("ProductoColor as pc", "p.id", "pc.idProducto")
+      ->leftJoin("Color as c", "c.id", "pc.idColor")
+      // Tallas
+      ->leftJoin("ProductoTalla AS pt", "pt.idProducto", "p.id")
+      ->leftJoin("Talla as t", "t.id", "pt.idTalla")
+      // Deptos
+      ->leftJoin("ProductoDepartamento as pd", "pd.idProducto", "pd.id")
+      // Categorias
+      ->leftJoin("ProductoCategoria as pca", "pca.idProducto", "p.id");
+
+      // Keyword
+      if ($request->search) {
+        $result->where("p.nombre", "LIKE", "%$request->search%");
+      }
+
+      // Color
+      if ($request->color) {
+        $result->where("c.id", "%$request->color%");
+      }
+
+      // Tallas
+      if ($request->talla) {
+        $result->where("idTalla", $request->talla);
+      }
+      //departamentos
+      if ($request->depto) {
+        $result->where("pd.idDepartamento", $request->depto);
+      }
+
+      // Categorías
+      if ($request->categoria) {
+        $result->where("pca.idCategoria", $request->categoria);
+      }
+
+      $total = $result->count();
+      $offset = ($page * $limit) - $limit;
+      $pages = ceil($total / $limit);
+      $result = $result
+                ->limit($limit)
+                ->offset($offset)
+                ->get();
+
+      foreach ($result as $key => $res) {
+        $exists = in_array($res->id, $temps);
+
+        if (!$exists) {
+          $response[] = $res;
+          array_push($temps, $res->id);
+        }
+      }
+
+      // Images and Stock
+      foreach ($response as $key => $res) {
+        $main = DB::table("ProductoImagen as pi")
+                ->join("Imagen as i", "i.id", "pi.idImagen")->where('pi.idProducto', $res->id)
+                ->first();
+        if (count((Array)$main) > 0) {
+          $res->thumb = $main->image;
+        } else {
+          $second = DB::table("Modelos as m")->join("ModelosImagen as mi", "m.id", "mi.idModelo")
+                    ->join("Imagen as i", "i.id", "mi.idImagen")->where('m.idProducto', $res->id)->first();
+          if (count((Array)$second) > 0) {
+            $res->thumb = $second->image;
+          }
+        }
+
+        $stock = DB::table("Modelos as m")->select("stock")->where("m.idProducto", $res->id)->first();
+        if (count((Array)$stock) > 0) {
+          $res->costo = $stock->stock;
+        }
+      }
+
+      return array(
+        'total' => $total,
+        'pages' => $pages,
+        'items' => $response,
+      );
     }
 }

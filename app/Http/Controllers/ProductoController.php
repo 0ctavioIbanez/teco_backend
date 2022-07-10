@@ -29,4 +29,9 @@ class ProductoController extends Controller
     {
       return response(Producto::get($id));
     }
+
+    public function search(Request $request)
+    {
+      return response(Producto::search($request));
+    }
 }
