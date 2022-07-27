@@ -13,8 +13,8 @@ class Departamento extends Model
 
     public static function create($request)
     {
-      $inicio = Imagen::upload($request->inicio ? $request->inicio[0] : null);
-      $cover = Imagen::upload($request->cover ? $request->cover[0] : null);
+      $inicio = Imagen::upload($request->inicio);
+      $cover = Imagen::upload($request->cover);
 
       return DB::table('Departamento')->insertGetId([
         "departamento" => $request->departamento,
@@ -51,15 +51,14 @@ class Departamento extends Model
 
     public static function actualiza($request)
     {
-
       $data = array("departamento" => $request->departamento);
 
       if ($request->inicio) {
-        $data["idImagenMain"] = Imagen::upload($request->inicio[0]);
+        $data["idImagenMain"] = Imagen::upload($request->inicio);
       }
 
       if ($request->cover) {
-        $data["idImagenCover"] = Imagen::upload($request->cover[0]);
+        $data["idImagenCover"] = Imagen::upload($request->cover);
       }
 
       DB::table('Departamento')->update($data);

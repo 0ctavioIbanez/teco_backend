@@ -34,4 +34,9 @@ class ProductoController extends Controller
     {
       return response(Producto::search($request));
     }
+
+    public function searchTienda(Request $request)
+    {
+      return response(Producto::searchTienda($request));
+    }
 }

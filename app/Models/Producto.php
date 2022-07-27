@@ -160,6 +160,15 @@ class Producto extends Model
       return ["details" => $producto];
     }
 
+  /*
+  * @params(Object)
+  - page
+  - search
+  - color
+  - talla
+  - depto
+  - categoria
+  */
     public static function search($request)
     {
       $page = $request->page;
@@ -238,7 +247,7 @@ class Producto extends Model
 
         $stock = DB::table("Modelos as m")->select("stock")->where("m.idProducto", $res->id)->first();
         if (count((Array)$stock) > 0) {
-          $res->costo = $stock->stock;
+          $res->stock = $stock->stock;
         }
       }
 
@@ -247,5 +256,40 @@ class Producto extends Model
         'pages' => $pages,
         'items' => $response,
       );
+    }
+
+/*
+  - d => departamento
+  - c => categoria
+*/
+    public static function searchTienda($request)
+    {
+      $productos = DB::table("Producto AS p")->select("*", "p.id AS id");
+
+      if ($request->d) {
+        $productos->join("ProductoDepartamento as pd", "pd.idProducto", "p.id")
+              ->join("Departamento as d", "d.id", "pd.idDepartamento")
+              ->where("d.id", $request->d);
+      }
+
+      if ($request->c) {
+        $productos->join("ProductoCategoria as pc", "pc.idProducto", "p.id")
+               ->join("Categoria AS c", "c.id", "pc.idCategoria")
+               ->where("c.id", $request->c);
+      }
+
+      $productos = $productos->get();
+
+      foreach ($productos as $key => $producto) {
+        $producto->images = DB::table("ProductoImagen AS pi")->select("i.image")
+                            ->join("Imagen as i", "i.id", "pi.idImagen")
+                            ->where("pi.idProducto", $producto->id)->get();
+
+        $producto->colores = DB::table("ProductoColor AS pc")->join("Color AS c", "c.id", "pc.idColor")
+                            ->select("hex")->where("pc.idProducto", $producto->id)->get();
+
+      }
+
+      return $productos;
     }
 }

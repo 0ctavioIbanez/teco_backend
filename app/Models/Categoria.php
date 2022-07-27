@@ -14,17 +14,8 @@ class Categoria extends Model
     public static function create($request)
     {
 
-      $mainImage = null;
-      $coverImage = null;
-
-      if ($request->mainImage) {
-        $mainImage = $request->mainImage[0];
-      }
-
-      if ($request->coverImage) {
-        $coverImage = $request->coverImage[0];
-      }
-
+        $mainImage = $request->mainImage;
+        $coverImage = $request->coverImage;
 
       $id = DB::table("Categoria")->insertGetId([
         "categoria" => $request->categoria,
@@ -67,8 +58,8 @@ class Categoria extends Model
 
     public static function actualiza($request)
     {
-      $mainImage = $request->mainImage ? $request->mainImage[0] : null;
-      $coverImage = $request->coverImage ? $request->coverImage[0] : null;
+      $mainImage = $request->mainImage;
+      $coverImage = $request->coverImage;
 
       $update = array(
         "categoria" => $request->categoria,
@@ -106,5 +97,17 @@ class Categoria extends Model
 
       DB::table("Imagen")->where('id', $request->idImage)->delete();
       DB::table("Categoria")->where('id', $request->id)->update($update);
+    }
+
+    public static function getCategoriaDepartamento()
+    {
+      $deptos = DB::table("Departamento")->get();
+      foreach ($deptos as $key => $depto) {
+        $depto->categorias = DB::table("CategoriaDepartamento as cd")
+        ->join("Categoria as c", "cd.idCategoria", "c.id")
+        ->where("cd.idDepartamento", $depto->id)
+        ->get();
+      }
+      return $deptos;
     }
 }

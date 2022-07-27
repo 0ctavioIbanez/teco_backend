@@ -54,4 +54,11 @@ class CategoriaController extends Controller
         "debug" => $test
       ]);
     }
+
+    public function getCategoriaDepartamento()
+    {
+      return response(
+        Categoria::getCategoriaDepartamento()
+      );
+    }
 }

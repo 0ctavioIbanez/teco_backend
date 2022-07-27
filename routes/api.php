@@ -28,6 +28,7 @@ Route::group(["prefix" => "/categoria"], function() {
   Route::get("/get/{id?}", "CategoriaController@get");
   Route::post("/deleteAll", "CategoriaController@deleteAll");
   Route::post("/removeImage", "CategoriaController@removeImage");
+  Route::get("/departamentos", "CategoriaController@getCategoriaDepartamento");
 });
 
 // Colores
@@ -56,3 +57,7 @@ Route::group(["prefix" => "/producto"], function() {
   Route::get("/get/{id?}", "ProductoController@get");
   Route::post("/search", "ProductoController@search");
 });
+
+
+// ====================== Public
+Route::post("search", "ProductoController@searchTienda");
