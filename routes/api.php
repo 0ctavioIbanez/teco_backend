@@ -60,4 +60,5 @@ Route::group(["prefix" => "/producto"], function() {
 
 
 // ====================== Public
-Route::post("search", "ProductoController@searchTienda");
+Route::get("store", "ProductoController@getTienda");
+Route::get("search", "ProductoController@searchTienda");

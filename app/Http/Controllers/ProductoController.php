@@ -35,8 +35,19 @@ class ProductoController extends Controller
       return response(Producto::search($request));
     }
 
+    /*
+    * Returns search results for search engine
+    */
     public function searchTienda(Request $request)
     {
       return response(Producto::searchTienda($request));
+    }
+
+    /*
+    * Returns all products according params
+    */
+    public function getTienda(Request $request)
+    {
+      return response(Producto::getProductDetail($request));
     }
 }

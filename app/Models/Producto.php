@@ -160,15 +160,15 @@ class Producto extends Model
       return ["details" => $producto];
     }
 
-  /*
-  * @params(Object)
-  - page
-  - search
-  - color
-  - talla
-  - depto
-  - categoria
-  */
+    /*
+    * @params(Object)
+    - page
+    - search
+    - color
+    - talla
+    - depto
+    - categoria
+    */
     public static function search($request)
     {
       $page = $request->page;
@@ -258,38 +258,85 @@ class Producto extends Model
       );
     }
 
-/*
-  - d => departamento
-  - c => categoria
-*/
+    /*
+    * Returns public results
+      - d => departamento
+      - c => categoria
+    */
     public static function searchTienda($request)
     {
-      $productos = DB::table("Producto AS p")->select("*", "p.id AS id");
+      $result = [];
 
-      if ($request->d) {
-        $productos->join("ProductoDepartamento as pd", "pd.idProducto", "p.id")
-              ->join("Departamento as d", "d.id", "pd.idDepartamento")
-              ->where("d.id", $request->d);
+      // Products
+      $products = DB::table("Producto AS P")->select("P.id", "nombre", "departamento")
+      ->join('ProductoDepartamento AS PD', 'PD.idProducto', 'P.id')
+      ->join('Departamento AS D', 'D.id', 'PD.idDepartamento')
+      ->where('visible', true)->where('nombre', 'LIKE', "%$request->kw%")->get();
+      if (count($products->toArray()) > 0) {
+        array_push($result, array('title' => 'Productos', 'items' => $products));
       }
 
-      if ($request->c) {
-        $productos->join("ProductoCategoria as pc", "pc.idProducto", "p.id")
-               ->join("Categoria AS c", "c.id", "pc.idCategoria")
-               ->where("c.id", $request->c);
+      // Tags
+      $tags = DB::table("Tag")->where('tag', 'LIKE', "%$request->kw%")->get();
+      if (count($tags->toArray()) > 0) {
+        $mapedTag = array_map(fn($item) => ["id" => $item->id, "nombre" => $item->tag], $tags->toArray());
+        array_push($result, array('title' => 'Etiquetas', 'items' => $mapedTag));
       }
 
-      $productos = $productos->get();
-
-      foreach ($productos as $key => $producto) {
-        $producto->images = DB::table("ProductoImagen AS pi")->select("i.image")
-                            ->join("Imagen as i", "i.id", "pi.idImagen")
-                            ->where("pi.idProducto", $producto->id)->get();
-
-        $producto->colores = DB::table("ProductoColor AS pc")->join("Color AS c", "c.id", "pc.idColor")
-                            ->select("hex")->where("pc.idProducto", $producto->id)->get();
-
+      // color
+      $colors = DB::table('Color')->where('color', 'LIKE', "%$request->kw%")->get();
+      if (count($colors->toArray()) > 0) {
+        $mapedColor = array_map(fn($item) => ["id" => $item->id, "nombre" => $item->color], $colors->toArray());
+        array_push($result, array('title' => 'Colores', 'items' => $mapedColor));
       }
 
-      return $productos;
+      return $result;
+    }
+
+    public static function getProductDetail($request)
+    {
+      $results = DB::table("Producto AS P")
+                ->select("P.id AS id", "codigo", "nombre", "descripcion", "precio", "departamento", "categoria")
+                ->join("ProductoDepartamento as PD", "PD.idProducto", "P.id")
+                ->join("Departamento AS D", "D.id", "PD.idDepartamento")
+                ->join("ProductoCategoria AS PC", "PC.idProducto", "P.id")
+                ->join("Categoria AS C", "C.id", "PC.idCategoria");
+
+
+      if (isset($request->search)) {
+        $results = $results->leftJoin("ProductoTag AS PT", "PT.idProducto", "P.id")
+          ->leftJoin("Tag AS T", "T.id", "PT.idTag")
+          ->where("nombre", "LIKE", "%$request->search%")
+          ->orWhere("tag", "LIKE", "%$request->search%");
+      }
+
+      if (isset($request->d)) {
+        $results = $results->where("D.id", $request->d);
+      }
+
+      if (isset($request->c)) {
+        $results = $results->where("C", $request->c);
+      }
+
+      $results = $results->where('P.visible', true)->get();
+
+      if (count($results->toArray()) < 0) {
+        return [];
+      }
+
+      foreach ($results as $key => $res) {
+        $image = DB::table("Imagen AS I")->select("image")
+          ->join("ProductoImagen AS PI", "PI.idImagen", "I.id")
+          ->where("PI.idProducto", $res->id)
+          ->get()->toArray();
+        $res->images = array_map(fn($img) => $img->image, $image);
+
+        $res->colors = DB::table("Color AS C")->select("C.color", "C.hex")
+          ->join("ProductoColor AS PC", "PC.idColor", "C.id")
+          ->where("PC.idProducto", $res->id)
+          ->get();
+      }
+
+      return $results;
     }
 }
