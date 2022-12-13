@@ -315,7 +315,7 @@ class Producto extends Model
       }
 
       if (isset($request->c)) {
-        $results = $results->where("C", $request->c);
+        $results = $results->where("C.id", $request->c);
       }
 
       $results = $results->where('P.visible', true)->get();
