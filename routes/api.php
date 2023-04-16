@@ -60,5 +60,7 @@ Route::group(["prefix" => "/producto"], function() {
 
 
 // ====================== Public
+Route::get("scaffolding", "TiendaController@getScaffolding");
 Route::get("store", "ProductoController@getTienda");
 Route::get("search", "ProductoController@searchTienda");
+Route::get("get-producto/{id}", "TiendaController@getProducto");

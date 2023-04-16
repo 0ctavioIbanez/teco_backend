@@ -13,13 +13,13 @@ class Departamento extends Model
 
     public static function create($request)
     {
-      $inicio = Imagen::upload($request->inicio);
-      $cover = Imagen::upload($request->cover);
+      $inicio = Imagen::upload($request->image);
+      // $cover = Imagen::upload($request->cover);
 
       return DB::table('Departamento')->insertGetId([
         "departamento" => $request->departamento,
         "idImagenMain" => $inicio,
-        "idImagenCover" => $cover,
+        // "idImagenCover" => $cover,
       ]);
     }
 
@@ -53,15 +53,17 @@ class Departamento extends Model
     {
       $data = array("departamento" => $request->departamento);
 
-      if ($request->inicio) {
-        $data["idImagenMain"] = Imagen::upload($request->inicio);
+      if (!$request->image) {
+        self::removeImage($request->id, $request->idImagenMain);
+      } else if ($request->image) {
+        $data["idImagenMain"] = Imagen::upload($request->image);
       }
 
-      if ($request->cover) {
-        $data["idImagenCover"] = Imagen::upload($request->cover);
-      }
+      // if ($request->cover) {
+      //   $data["idImagenCover"] = Imagen::upload($request->cover);
+      // }
 
-      DB::table('Departamento')->update($data);
+      DB::table('Departamento')->where("id", $request->id)->update($data);
     }
 
     public static function removeImage($idDepto, $idImage)
@@ -78,7 +80,7 @@ class Departamento extends Model
     {
       $departamento = self::get($request->id);
       DB::table("Imagen")->where("id", $departamento->idImagenMain)->delete();
-      DB::table("Imagen")->where("id", $departamento->idImagenCover)->delete();
+      // DB::table("Imagen")->where("id", $departamento->idImagenCover)->delete();
       DB::table("Departamento")->where("id", $request->id)->delete();
     }
 }

@@ -268,7 +268,7 @@ class Producto extends Model
       $result = [];
 
       // Products
-      $products = DB::table("Producto AS P")->select("P.id", "nombre", "departamento")
+      $products = DB::table("Producto AS P")->select("P.id as idProducto", "nombre", "departamento", "D.id as idDepartamento")
       ->join('ProductoDepartamento AS PD', 'PD.idProducto', 'P.id')
       ->join('Departamento AS D', 'D.id', 'PD.idDepartamento')
       ->where('visible', true)->where('nombre', 'LIKE', "%$request->kw%")->get();
@@ -284,17 +284,21 @@ class Producto extends Model
       }
 
       // color
-      $colors = DB::table('Color')->where('color', 'LIKE', "%$request->kw%")->get();
-      if (count($colors->toArray()) > 0) {
-        $mapedColor = array_map(fn($item) => ["id" => $item->id, "nombre" => $item->color], $colors->toArray());
-        array_push($result, array('title' => 'Colores', 'items' => $mapedColor));
-      }
+      // $colors = DB::table('Color')->where('color', 'LIKE', "%$request->kw%")->get();
+      // if (count($colors->toArray()) > 0) {
+      //   $mapedColor = array_map(fn($item) => ["id" => $item->id, "nombre" => $item->color], $colors->toArray());
+      //   array_push($result, array('title' => 'Colores', 'items' => $mapedColor));
+      // }
 
       return $result;
     }
 
     public static function getProductDetail($request)
     {
+      // return explode("&", $request->fullUrl());
+      $colors = [];
+      $tags   = [];
+
       $results = DB::table("Producto AS P")
                 ->select("P.id AS id", "codigo", "nombre", "descripcion", "precio", "departamento", "categoria")
                 ->join("ProductoDepartamento as PD", "PD.idProducto", "P.id")
@@ -310,12 +314,12 @@ class Producto extends Model
           ->orWhere("tag", "LIKE", "%$request->search%");
       }
 
-      if (isset($request->d)) {
-        $results = $results->where("D.id", $request->d);
+      if (isset($request->section)) {
+        $results = $results->where("D.id", $request->section);
       }
 
-      if (isset($request->c)) {
-        $results = $results->where("C.id", $request->c);
+      if (isset($request->category)) {
+        $results = $results->where("C.id", $request->category);
       }
 
       $results = $results->where('P.visible', true)->get();
@@ -325,18 +329,76 @@ class Producto extends Model
       }
 
       foreach ($results as $key => $res) {
-        $image = DB::table("Imagen AS I")->select("image")
+        $res->images = DB::table("Imagen AS I")->select("image", "I.id")
           ->join("ProductoImagen AS PI", "PI.idImagen", "I.id")
           ->where("PI.idProducto", $res->id)
           ->get()->toArray();
-        $res->images = array_map(fn($img) => $img->image, $image);
 
-        $res->colors = DB::table("Color AS C")->select("C.color", "C.hex")
+        $_tags = DB::table("Tag as T")->join("ProductoTag as PT", "PT.idtag", "T.id")->select("tag", "T.id as idTag")
+                  ->where("PT.idProducto", $res->id)
+                  ->get()->toArray();
+
+        if (count($_tags) > 0) {
+          array_push($tags, $_tags);
+        }
+
+        $_colors = DB::table("Color AS C")->select("C.color", "C.hex", "C.id as idColor")
           ->join("ProductoColor AS PC", "PC.idColor", "C.id")
           ->where("PC.idProducto", $res->id)
           ->get();
+        $res->colors = $_colors;
+
+        if (count($_colors->toArray()) > 0) {
+          array_push($colors, $_colors->toArray());
+        }
       }
 
-      return $results;
+      $colorCollection = collect($colors);
+      $colors = $colorCollection->unique()->toArray();
+      $colors = array_map(fn($item) => $item[0],$colors);
+
+      $tagCollection = collect($tags);
+      $tags = $tagCollection->unique()->toArray();
+      $tags = array_map(fn($item) => $item[0],$tags);
+
+      return [
+          "results" => $results,
+          "filters" => [
+                        "colors" => $colors,
+                        "tags" => $tags
+                        ]
+            ];
+    }
+
+    public static function getPublic($id) {
+        $product =  DB::table("Producto as P")
+          ->select("id", "nombre", "descripcion", "precio")
+          ->where("P.id", $id)
+          ->first();
+
+        $product->images = DB::table('Imagen as I')
+          ->leftJoin("ProductoImagen as PI", "PI.idImagen", "I.id")
+          ->select("I.id", "image")
+          ->where("PI.idProducto", $id)
+          ->get();
+
+          $product->colors = DB::table("Color as C")
+          ->join("ProductoColor as PC", "PC.idColor", "C.id")
+          ->where("PC.idProducto", $id)
+          ->select("color", "hex")
+          ->get();
+
+          $product->tags = DB::table("Tag as T")
+          ->join("ProductoTag as PT", "T.id", "PT.idTag")
+          ->select("tag", "T.id")
+          ->where("PT.idProducto", $id)
+          ->get();
+
+          $product->sizes = DB::table("Talla as T")
+          ->join("ProductoTalla as PT", "PT.idTalla", "T.id")
+          ->select("T.id", "talla")
+          ->where("PT.idProducto", $id)
+          ->get();
+        return $product;
     }
 }
