@@ -58,8 +58,8 @@ class Categoria extends Model
 
     public static function actualiza($request)
     {
-      $mainImage = $request->mainImage;
-      $coverImage = $request->coverImage;
+      $mainImage = $request->image;
+      // $coverImage = $request->coverImage;
 
       $update = array(
         "categoria" => $request->categoria,
@@ -68,9 +68,9 @@ class Categoria extends Model
       if ($mainImage) {
         $update["idImagenMain"] = Imagen::upload($mainImage);
       }
-      if ($coverImage) {
-        $update["idImagenCover"] = Imagen::upload($coverImage);
-      }
+      // if ($coverImage) {
+      //   $update["idImagenCover"] = Imagen::upload($coverImage);
+      // }
 
       DB::table("Categoria")->where('id', $request->id)->update($update);
       DB::table("CategoriaDepartamento")->where('idCategoria', $request->id)->delete();
