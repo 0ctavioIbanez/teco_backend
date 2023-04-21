@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Producto;
+use App\Models\Modelo;
 
 class ProductoController extends Controller
 {
@@ -49,5 +50,21 @@ class ProductoController extends Controller
     public function getTienda(Request $request)
     {
       return response(Producto::getProductDetail($request));
+    }
+
+    public function updateColor(Request $request)
+    {
+      return response(Producto::updateColor($request));
+    }
+
+
+    public function createColor(Request $request)
+    {
+      return response(Producto::createColor($request));
+    }
+
+    public function createModelo(Request $request)
+    {
+      return response(Modelo::createModelo($request));
     }
 }

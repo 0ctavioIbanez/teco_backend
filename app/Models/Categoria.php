@@ -72,8 +72,12 @@ class Categoria extends Model
       //   $update["idImagenCover"] = Imagen::upload($coverImage);
       // }
 
+      // Delete previous relations
+      foreach ($request->catDeptoId as $key => $relation) {
+        DB::table("CategoriaDepartamento")->where('id', $relation)->delete();
+      }
+
       DB::table("Categoria")->where('id', $request->id)->update($update);
-      DB::table("CategoriaDepartamento")->where('idCategoria', $request->id)->delete();
 
       foreach ($request->departamentos as $key => $depto) {
         self::createCatDepto($request->id, $depto);
@@ -103,6 +107,7 @@ class Categoria extends Model
     public static function getCategoriaDepartamento()
     {
       $deptos = DB::table("Departamento")->get();
+
       foreach ($deptos as $key => $depto) {
         $categorias = DB::table("CategoriaDepartamento as cd")
         ->join("Categoria as c", "cd.idCategoria", "c.id")
@@ -111,6 +116,9 @@ class Categoria extends Model
 
         foreach ($categorias as $key => $categoria) {
           $categoria->image = DB::table("Imagen")->where("id", $categoria->idImagenMain)->select("image")->first()?->image;
+          $deptoCatsId = DB::table("CategoriaDepartamento AS CD")->select("id")->where("CD.idDepartamento", $depto->id)
+                        ->where("idCategoria", $categoria->id)->get()->map(fn($depto) => $depto->id);
+          $categoria->deptoCatIds = $deptoCatsId;
         }
 
         $depto->categorias = $categorias;

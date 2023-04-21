@@ -155,8 +155,16 @@ class Producto extends Model
       $producto->tallas = DB::table("ProductoTalla as pt")->select("t.*")->join("Talla as t", "t.id", "pt.idTalla")->where('pt.idProducto', $id)->get();
       $producto->colores = DB::table("ProductoColor as pc")->select("c.*")->join('Color as c', 'c.id', 'pc.idColor')->where('pc.idProducto', $id)->get();
       $producto->imagenes = DB::table("ProductoImagen as pi")->select("i.image")->join("Imagen as i", "i.id", "pi.idImagen")->where('pi.idProducto', $id)->get();
-      $producto->modelos = DB::table("Modelos as m")->select("m.*", "i.image")->leftJoin("ModelosImagen as mi", "m.id", "mi.idModelo")
+      $modelos = DB::table("Modelos as m")->select("m.*", "i.image")->leftJoin("ModelosImagen as mi", "m.id", "mi.idModelo")
                           ->leftJoin("Imagen as i", "i.id", "mi.idImagen")->where("m.idProducto", $id)->get();
+
+      foreach ($modelos as $key => $modelo) {
+        $modelo->colores = DB::table("ProductoColor AS PC", "PC.idModelo", "m.id")->select("color", "hex", "idColor")->join("Color as C", "C.id", "PC.idColor")
+                          ->where("PC.idModelo", $modelo->id)->get();
+      }
+
+      $producto->modelos = $modelos;
+
       return ["details" => $producto];
     }
 
@@ -400,5 +408,27 @@ class Producto extends Model
           ->where("PT.idProducto", $id)
           ->get();
         return $product;
+    }
+
+    public static function updateColor($request)
+    {
+      return DB::table("Color")->where("id", $request->idColor)->update([
+        "color" => $request->color,
+        "hex" => $request->hex
+      ]);
+    }
+
+    public static function createColor($request)
+    {
+      $idColor = DB::table("Color")->insertGetId([
+        "color" => $request->color,
+        "hex" => $request->hex
+      ]);
+
+      return DB::table("ProductoColor")->insert([
+        "idProducto" => $request->id,
+        "idModelo" => $request->idModelo,
+        "idColor" => $idColor
+      ]);
     }
 }
