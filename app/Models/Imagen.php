@@ -42,4 +42,32 @@ class Imagen extends Model
 
       return "data:image/png;base64, $thumb";
     }
+
+    public static function remove($request){
+          try {
+            DB::table("Imagen")->where("id", $request->idImage)->delete();
+            DB::table("ProductoImagen")->where("idImagen", $request->idImage)->delete();
+            DB::table("ModelosImagen")->where("idImagen", $request->idImage)->delete();
+            return ["status" => "ok", "message" => "Imágen eliminada correctamente"];
+          } catch (\Exception $e) {
+            return ["error" => $e];
+          }
+    }
+
+    public static function createProducto($request)
+    {
+      // try {
+        foreach ($request->images as $key => $image) {
+          $idImage = Self::upload($image);
+          if ($request->isModel) {
+            DB::table("ModelosImagen")->insert(["idModelo" => $request->isModel, "idImagen" => $idImage]);
+          } else {
+            DB::table("ProductoImagen")->insert(["idProducto" => $request->id, "idImagen" => $idImage]);
+          }
+        }
+        return ["message" => "Imágen subida correctamente"];
+      // } catch (\Exception $e) {
+      //   return ["error" => $e];
+      // }
+    }
 }

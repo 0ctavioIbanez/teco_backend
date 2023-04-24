@@ -154,7 +154,7 @@ class Producto extends Model
       $producto->tags = DB::table("ProductoTag as pt")->select("t.*")->join("Tag as t", 't.id', 'pt.idTag')->where('pt.idProducto', $id)->get();
       $producto->tallas = DB::table("ProductoTalla as pt")->select("t.*")->join("Talla as t", "t.id", "pt.idTalla")->where('pt.idProducto', $id)->get();
       $producto->colores = DB::table("ProductoColor as pc")->select("c.*")->join('Color as c', 'c.id', 'pc.idColor')->where('pc.idProducto', $id)->get();
-      $producto->imagenes = DB::table("ProductoImagen as pi")->select("i.image")->join("Imagen as i", "i.id", "pi.idImagen")->where('pi.idProducto', $id)->get();
+      $producto->imagenes = DB::table("ProductoImagen as pi")->select("i.image", "i.id as idImage")->join("Imagen as i", "i.id", "pi.idImagen")->where('pi.idProducto', $id)->get();
       $modelos = DB::table("Modelos as m")->select("m.*", "i.image")->leftJoin("ModelosImagen as mi", "m.id", "mi.idModelo")
                           ->leftJoin("Imagen as i", "i.id", "mi.idImagen")->where("m.idProducto", $id)->get();
 

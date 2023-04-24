@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Producto;
 use App\Models\Modelo;
+use App\Models\Color;
+use App\Models\Imagen;
 
 class ProductoController extends Controller
 {
@@ -66,5 +68,20 @@ class ProductoController extends Controller
     public function createModelo(Request $request)
     {
       return response(Modelo::createModelo($request));
+    }
+
+    public function deleteColor(Request $request)
+    {
+      return response(Color::deleteColor($request));
+    }
+
+    public function deleteImage(Request $request)
+    {
+      return response(Imagen::remove($request));
+    }
+
+    public function creteImage(Request $request)
+    {
+      return response(Imagen::createProducto($request));
     }
 }

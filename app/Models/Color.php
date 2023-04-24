@@ -14,4 +14,15 @@ class Color extends Model
     {
       return DB::table("Color")->get();
     }
+
+    public static function deleteColor($request)
+    {
+      try {
+        // DB::table("Color")->where('id', $request->idColor)->delete();
+        DB::table("ProductoColor")->where('idColor', $request->idColor)->delete();
+        return ["status" => "ok", "message" => "Color eliminado correctamente"];
+      } catch (\Exception $e) {
+        return ["status" => "bad", "error" => $e];
+      }
+    }
 }
