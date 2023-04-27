@@ -56,7 +56,6 @@ class Imagen extends Model
 
     public static function createProducto($request)
     {
-      // try {
         foreach ($request->images as $key => $image) {
           $idImage = Self::upload($image);
           if ($request->isModel) {
@@ -66,8 +65,5 @@ class Imagen extends Model
           }
         }
         return ["message" => "Imágen subida correctamente"];
-      // } catch (\Exception $e) {
-      //   return ["error" => $e];
-      // }
     }
 }

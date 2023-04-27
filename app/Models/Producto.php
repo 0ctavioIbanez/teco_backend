@@ -155,12 +155,12 @@ class Producto extends Model
       $producto->tallas = DB::table("ProductoTalla as pt")->select("t.*")->join("Talla as t", "t.id", "pt.idTalla")->where('pt.idProducto', $id)->get();
       $producto->colores = DB::table("ProductoColor as pc")->select("c.*")->join('Color as c', 'c.id', 'pc.idColor')->where('pc.idProducto', $id)->get();
       $producto->imagenes = DB::table("ProductoImagen as pi")->select("i.image", "i.id as idImage")->join("Imagen as i", "i.id", "pi.idImagen")->where('pi.idProducto', $id)->get();
-      $modelos = DB::table("Modelos as m")->select("m.*", "i.image")->leftJoin("ModelosImagen as mi", "m.id", "mi.idModelo")
-                          ->leftJoin("Imagen as i", "i.id", "mi.idImagen")->where("m.idProducto", $id)->get();
+      $modelos = DB::table("Modelos as m")->where("m.idProducto", $id)->get();
 
       foreach ($modelos as $key => $modelo) {
         $modelo->colores = DB::table("ProductoColor AS PC", "PC.idModelo", "m.id")->select("color", "hex", "idColor")->join("Color as C", "C.id", "PC.idColor")
                           ->where("PC.idModelo", $modelo->id)->get();
+        $modelo->images = DB::table("ModelosImagen as mi")->select("i.image", "i.id")->join("Imagen as i", "i.id", "mi.idImagen")->where("mi.idModelo", $modelo->id)->get();
       }
 
       $producto->modelos = $modelos;

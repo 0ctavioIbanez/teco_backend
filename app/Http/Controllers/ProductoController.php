@@ -84,4 +84,9 @@ class ProductoController extends Controller
     {
       return response(Imagen::createProducto($request));
     }
+
+    public function deleteModeloImage(Request $request)
+    {
+      return response(Modelo::deleteImage($request));
+    }
 }

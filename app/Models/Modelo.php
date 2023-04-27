@@ -21,4 +21,11 @@ class Modelo extends Model
         "precioExtra" => $request->precioExtra
       ]);
     }
+
+    public static function deleteImage($request)
+    {
+      DB::table("Imagen")->where("id", $request->idImage)->delete();
+      DB::table("ModelosImagen")->where("idImagen", $request->idImage)->delete();
+      return ["message" => "Imágen eliminada correctamente"];
+    }
 }
