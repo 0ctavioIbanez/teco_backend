@@ -7,6 +7,7 @@ use App\Models\Producto;
 use App\Models\Modelo;
 use App\Models\Color;
 use App\Models\Imagen;
+use App\Models\Tags;
 
 class ProductoController extends Controller
 {
@@ -88,5 +89,15 @@ class ProductoController extends Controller
     public function deleteModeloImage(Request $request)
     {
       return response(Modelo::deleteImage($request));
+    }
+
+    public function createTag(Request $request)
+    {
+      return response(Tags::createProducto($request));
+    }
+
+    public function deleteTag(Request $request)
+    {
+      return response(Tags::remove($request));
     }
 }

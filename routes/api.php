@@ -63,6 +63,8 @@ Route::group(["prefix" => "/producto"], function() {
   Route::post("/delete-image", "ProductoController@deleteImage");
   Route::post("/create-image", "ProductoController@creteImage");
   Route::post("/delete-modelo-image", "ProductoController@deleteModeloImage");
+  Route::post("/create-tag", "ProductoController@createTag");
+  Route::post("/delete-tag", "ProductoController@deleteTag");
 });
 
 

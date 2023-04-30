@@ -14,4 +14,18 @@ class Tags extends Model
     {
       return DB::table("Tag")->get();
     }
+
+    public static function createProducto($request)
+    {
+      foreach ($request->tags as $key => $tag) {
+        $idTag = DB::table("Tag")->insertGetId(["tag" => $tag]);
+        DB::table("ProductoTag")->insert(["idProducto" => $request->id, "idTag" => $idTag]);
+      }
+    }
+
+    public static function remove($request)
+    {
+      DB::table("Tag")->where("id", $request->id)->delete();
+      DB::table("ProductoTag")->where("idTag", $request->id)->delete();
+    }
 }
