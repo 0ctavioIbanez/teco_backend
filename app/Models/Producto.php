@@ -19,19 +19,19 @@ class Producto extends Model
     public static function createGeneral($request)
     {
       $id = DB::table("Producto")->insertGetId([
-        "codigo" => $request["codigo"],
-        "nombre" => $request["nombre"],
-        "descripcion" => $request["descripcion"],
-        "costo" => $request["costo"],
-        "precio" => $request["precio"],
-        "visible" => $request["visible"],
-        "nota" => $request["nota"],
+        "codigo" => $request->codigo,
+        "nombre" => $request->nombre,
+        "descripcion" => $request->descripcion,
+        "costo" => $request->costo,
+        "precio" => $request->precio,
+        "visible" => $request->visible,
+        "nota" => $request->nota,
       ]);
 
-      foreach ($request["images"] as $key => $image) {
-        DB::table("ProductoImagen")->insert([
-          "idProducto" => $id,
-          "idImagen" => Imagen::upload($image)
+      foreach ($request->categorias as $key => $categoria) {
+        DB::table("ProductoCategoria")->insert([
+          "idProducto" => $categoria['departamento'],
+          "idCategoria" => $categoria['categoria']
         ]);
       }
       return $id;
