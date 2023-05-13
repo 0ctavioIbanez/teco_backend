@@ -11,7 +11,12 @@ class TiendaController extends Controller
 {
     public function getScaffolding()
     {
-      return Categoria::getScaffolding();
+      return [
+        "categories" => Categoria::getScaffolding(),
+        "recommended" => [],
+        "mostSellers" => [],
+        "offers" => []
+      ];
     }
 
     public function getProducto($request)

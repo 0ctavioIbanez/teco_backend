@@ -9,9 +9,9 @@ class CategoriaController extends Controller
 {
     public function create(Request $request)
     {
-      $this->validate($request, [
-        "categoria" => "unique:Categoria"
-      ]);
+      // $this->validate($request, [
+      //   "categoria" => "unique:Categoria"
+      // ]);
 
       $id = Categoria::create($request);
       return response([
