@@ -30,10 +30,11 @@ class Producto extends Model
 
     foreach ($request->categorias as $key => $categoria) {
       DB::table("ProductoCategoria")->insert([
-        "idProducto" => $categoria['departamento'],
+        "idProducto" => $id,
         "idCategoria" => $categoria['categoria']
       ]);
     }
+
     return $id;
   }
 
@@ -308,11 +309,14 @@ class Producto extends Model
     $tags   = [];
 
     $results = DB::table("Producto AS P")
-      ->select("P.id AS id", "codigo", "nombre", "descripcion", "precio", "departamento", "categoria")
-      ->join("ProductoDepartamento as PD", "PD.idProducto", "P.id")
-      ->join("Departamento AS D", "D.id", "PD.idDepartamento")
+      ->select("P.id AS id", "codigo", "nombre", "descripcion", "precio", "categoria")
+      // ->leftJoin("ProductoDepartamento as PD", "PD.idProducto", "P.id")
+      // ->leftJoin("Departamento AS D", "D.id", "PD.idDepartamento")
       ->join("ProductoCategoria AS PC", "PC.idProducto", "P.id")
-      ->join("Categoria AS C", "C.id", "PC.idCategoria");
+      ->join("Categoria AS C", "C.id", "PC.idCategoria")
+      ->join("CategoriaDepartamento as CD", "CD.idCategoria", "C.id");
+
+      // return $results->get();
 
 
     if (isset($request->search)) {
@@ -323,7 +327,7 @@ class Producto extends Model
     }
 
     if (isset($request->section)) {
-      $results = $results->where("D.id", $request->section);
+      $results = $results->where("CD.idDepartamento", $request->section);
     }
 
     if (isset($request->category)) {

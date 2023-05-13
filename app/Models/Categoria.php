@@ -15,12 +15,10 @@ class Categoria extends Model
   {
 
     $mainImage = $request->image;
-    // $coverImage = $request->coverImage;
 
     $id = DB::table("Categoria")->insertGetId([
       "categoria" => $request->categoria,
       "idImagenMain" => Imagen::upload($mainImage),
-      // "idImagenCover" => Imagen::upload($coverImage),
     ]);
 
     foreach ($request->departamentos as $key => $depto) {
