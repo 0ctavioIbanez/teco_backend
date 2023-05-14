@@ -192,78 +192,95 @@ class Producto extends Model
     $response = [];
     $temps = [];
 
-    $result = DB::table("Producto as p")
-      ->select("p.nombre", "p.precio", "p.costo", "p.descripcion", "p.codigo", "p.id as id", "pc.idColor", "c.color", "pt.idTalla", "t.talla", "pd.idDepartamento", "pca.idCategoria")
-      // Color
-      ->leftJoin("ProductoColor as pc", "p.id", "pc.idProducto")
-      ->leftJoin("Color as c", "c.id", "pc.idColor")
-      // Tallas
-      ->leftJoin("ProductoTalla AS pt", "pt.idProducto", "p.id")
-      ->leftJoin("Talla as t", "t.id", "pt.idTalla")
-      // Deptos
-      ->leftJoin("ProductoDepartamento as pd", "pd.idProducto", "pd.id")
-      // Categorias
-      ->leftJoin("ProductoCategoria as pca", "pca.idProducto", "p.id");
+    /**
+     * ============= Filters starts
+     */
+    // Get categories Id
+    $categoryProductsId = [];
+    if ($request->Categorías) {
+      $categoriesId = [];
+      foreach ($request->Categorías as $key => $category) {
+        $categoriesId[$key] = DB::table("Categoria")->select("id")->where("categoria", $category)->first()->id;
+      }
+      $categoryProductsId = DB::table("ProductoCategoria")->whereIn("idCategoria", $categoriesId)->select("idProducto")->distinct()->get()->map(fn ($item) => $item->idProducto);
+    }
+
+    // Get Departamentos Id
+    $deptosProductsId = [];
+    if ($request->Departamentos) {
+      $deptosId = [];
+      foreach ($request->Departamentos as $key => $depto) {
+        $deptosId[$key] = DB::table("Departamento")->select("id")->where("departamento", $depto)->first()->id;
+      }
+      $categoriesDeptosId = DB::table("CategoriaDepartamento")->whereIn("idDepartamento", $deptosId)->select("idCategoria")->distinct()->get()->map(fn ($item) => $item->idCategoria);
+      $deptosProductsId = DB::table("ProductoCategoria")->whereIn("idCategoria", $categoriesDeptosId)->select("idProducto")->distinct()->get()->map(fn ($item) => $item->idProducto);
+    }
+
+    // Get Colores id
+    $colorProductsId = [];
+    if ($request->Colores) {
+      $colorId = [];
+      foreach ($request->Colores as $key => $color) {
+        $colorId[$key] = DB::table("Color")->select("id")->where("color", $color)->first()->id;
+      }
+      $colorProductsId = DB::table("ProductoColor")->select("idProducto")->whereIn("idColor", $colorId)->get()->map(fn ($item) => $item->idProducto);
+    }
+
+    // Get Tallas id
+    $tagProductsId = [];
+    if ($request->Tags) {
+      $tagsId = [];
+      foreach ($request->Tags as $key => $tag) {
+        $tagsId[$key] = DB::table("Tag")->select("id")->where("tag", $tag)->first()->id;
+      }
+      $tagProductsId = DB::table("ProductoTag")->whereIn("idTag", $tagsId)->select("idProducto")->distinct()->get()->map(fn ($item) => $item->idProducto);
+    }
+
+    /**
+     * ============= Filters ends
+     */
+
+    $products = DB::table("Producto AS p");
 
     // Keyword
-    if ($request->search) {
-      $result->where("p.nombre", "LIKE", "%$request->search%");
+    if ($request->q) {
+      $products->where("p.nombre", "LIKE", "%$request->q%");
     }
 
-    // Color
-    if ($request->color) {
-      $result->where("c.id", "%$request->color%");
+    /**
+     * ============= Filters apply starts
+     */
+    if ($categoryProductsId) {
+      $products = $products->whereIn("p.id", $categoryProductsId);
     }
+    if ($deptosProductsId) {
+      $products = $products->whereIn("p.id", $deptosProductsId);
+    }
+    if ($colorProductsId) {
+      $products = $products->whereIn("p.id", $colorProductsId);
+    }
+    if ($tagProductsId) {
+      $products = $products->whereIn("p.id", $tagProductsId);
+    }
+    /**
+     * ============= Filters apply ends
+     */
 
-    // Tallas
-    if ($request->talla) {
-      $result->where("idTalla", $request->talla);
-    }
-    //departamentos
-    if ($request->depto) {
-      $result->where("pd.idDepartamento", $request->depto);
-    }
 
-    // Categorías
-    if ($request->categoria) {
-      $result->where("pca.idCategoria", $request->categoria);
-    }
-
-    $total = $result->count();
+    $total = $products->count();
     $offset = ($page * $limit) - $limit;
     $pages = ceil($total / $limit);
-    $result = $result
+    $products = $products
       ->limit($limit)
       ->offset($offset)
       ->get();
 
-    foreach ($result as $key => $res) {
+    foreach ($products as $key => $res) {
       $exists = in_array($res->id, $temps);
 
       if (!$exists) {
         $response[] = $res;
         array_push($temps, $res->id);
-      }
-    }
-
-    // Images and Stock
-    foreach ($response as $key => $res) {
-      $main = DB::table("ProductoImagen as pi")
-        ->join("Imagen as i", "i.id", "pi.idImagen")->where('pi.idProducto', $res->id)
-        ->first();
-      if (count((array)$main) > 0) {
-        $res->thumb = $main->image;
-      } else {
-        $second = DB::table("Modelos as m")->join("ModelosImagen as mi", "m.id", "mi.idModelo")
-          ->join("Imagen as i", "i.id", "mi.idImagen")->where('m.idProducto', $res->id)->first();
-        if (count((array)$second) > 0) {
-          $res->thumb = $second->image;
-        }
-      }
-
-      $stock = DB::table("Modelos as m")->select("stock")->where("m.idProducto", $res->id)->first();
-      if (count((array)$stock) > 0) {
-        $res->stock = $stock->stock;
       }
     }
 
@@ -323,7 +340,7 @@ class Producto extends Model
       ->join("Categoria AS C", "C.id", "PC.idCategoria")
       ->join("CategoriaDepartamento as CD", "CD.idCategoria", "C.id");
 
-      // return $results->get();
+    // return $results->get();
 
 
     if (isset($request->search)) {
@@ -444,56 +461,57 @@ class Producto extends Model
     ]);
   }
 
-  public static function getFilters($products) {
+  public static function getFilters($products)
+  {
     $filters = [];
-    $productsId = $products->map(fn($product) => $product->id, $products);
-    
+    $productsId = $products->map(fn ($product) => $product->id, $products);
+
     foreach ($productsId as $key => $id) {
       $categoriasId = DB::table("ProductoCategoria as PC")
         ->join("Categoria as C", "C.id", "PC.idCategoria")
         ->where("PC.idProducto", $id)
-        ->select("C.id")->get()->map(fn($item) => $item->id);
-      
-        $categorias = DB::table("ProductoCategoria as PC")->join("Categoria as C", "C.id", "PC.idCategoria")
-          ->where("PC.idProducto", $id)->select("categoria")->distinct()->get()->map(fn($item) => $item->categoria);
+        ->select("C.id")->get()->map(fn ($item) => $item->id);
 
-        $departamentos = [];
+      $categorias = DB::table("ProductoCategoria as PC")->join("Categoria as C", "C.id", "PC.idCategoria")
+        ->where("PC.idProducto", $id)->select("categoria")->distinct()->get()->map(fn ($item) => $item->categoria);
 
-        foreach ($categoriasId as $key => $catId) {
-          $departamentos[$key] = DB::table("CategoriaDepartamento AS CD")->join("Departamento AS D", "D.id", "CD.idDepartamento")
-            ->select("departamento")->where("idCategoria", $catId)->first()->departamento;
-        }
+      $departamentos = [];
 
-        $colores = DB::table("ProductoColor AS PC")->join("Color as C", "C.id", "PC.idColor")
-          ->select("color")->get()->map(fn($item) => $item->color);
-      
-        $tags = DB::table('Tag as T')->join("ProductoTag as PT", "PT.idTag", "T.id")->select("tag")
-          ->distinct()->where("PT.idProducto", $id)->get()->map(fn($item) => $item->tag);
-      
+      foreach ($categoriasId as $key => $catId) {
+        $departamentos[$key] = DB::table("CategoriaDepartamento AS CD")->join("Departamento AS D", "D.id", "CD.idDepartamento")
+          ->select("departamento")->where("idCategoria", $catId)->first()->departamento;
+      }
+
+      $colores = DB::table("ProductoColor AS PC")->join("Color as C", "C.id", "PC.idColor")
+        ->select("color")->get()->map(fn ($item) => $item->color);
+
+      $tags = DB::table('Tag as T')->join("ProductoTag as PT", "PT.idTag", "T.id")->select("tag")
+        ->distinct()->where("PT.idProducto", $id)->get()->map(fn ($item) => $item->tag);
 
 
-        $filters = [
-          [
-            "placeholder" => "Categorías",
-            "checks" => $categorias
-          ],
-          [
-            "placeholder" => "Departamentos",
-            "checks" => $departamentos
-          ],
-          [
-            "placeholder" => "Colores",
-            "checks" => $colores
-          ],
-          [
-            "placeholder" => "Tallas",
-            "checks" => []
-          ],
-          [
-            "placeholder" => "Tags",
-            "checks" => $tags
-          ]
-        ];
+
+      $filters = [
+        [
+          "placeholder" => "Categorías",
+          "checks" => $categorias
+        ],
+        [
+          "placeholder" => "Departamentos",
+          "checks" => $departamentos
+        ],
+        [
+          "placeholder" => "Colores",
+          "checks" => $colores
+        ],
+        [
+          "placeholder" => "Tallas",
+          "checks" => []
+        ],
+        [
+          "placeholder" => "Tags",
+          "checks" => $tags
+        ]
+      ];
     }
     return $filters;
   }
