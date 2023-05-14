@@ -120,7 +120,7 @@ class Producto extends Model
     }
   }
 
-  public static function get($id)
+  public static function get($id, $itemsPerPage = 12)
   {
     $producto = DB::table("Producto AS p")->select("*", "p.id AS id");
 
@@ -128,7 +128,7 @@ class Producto extends Model
       $results = $producto->get();
 
       foreach ($results as $key => $result) {
-        $modelos = DB::table("Modelos AS m")->select("stock")->where("m.idProducto", $result->id)->get();
+        $modelos = DB::table("Modelos AS m")->select("stock")->where("m.idProducto", $result->id)->paginate($itemsPerPage);
 
         $stock = 0;
         foreach ($modelos as $key => $modelo) {
@@ -136,7 +136,20 @@ class Producto extends Model
         }
         $result->stock = $stock;
       }
-      return $results;
+
+      // Pagination
+      $totalItems = $results->count();
+      $totalPages = floor($totalItems / $itemsPerPage);
+      $currentPage = 0;
+
+      return [
+        "results" => $results,
+        "pagination" => [
+          "total" => $totalItems,
+          "pages" => $totalPages,
+          "currentPage" => $currentPage
+        ]
+      ];
     }
 
     $producto = $producto->where('id', $id)->first();
@@ -429,5 +442,59 @@ class Producto extends Model
       "idModelo" => $request->idModelo,
       "idColor" => $idColor
     ]);
+  }
+
+  public static function getFilters($products) {
+    $filters = [];
+    $productsId = $products->map(fn($product) => $product->id, $products);
+    
+    foreach ($productsId as $key => $id) {
+      $categoriasId = DB::table("ProductoCategoria as PC")
+        ->join("Categoria as C", "C.id", "PC.idCategoria")
+        ->where("PC.idProducto", $id)
+        ->select("C.id")->get()->map(fn($item) => $item->id);
+      
+        $categorias = DB::table("ProductoCategoria as PC")->join("Categoria as C", "C.id", "PC.idCategoria")
+          ->where("PC.idProducto", $id)->select("categoria")->distinct()->get()->map(fn($item) => $item->categoria);
+
+        $departamentos = [];
+
+        foreach ($categoriasId as $key => $catId) {
+          $departamentos[$key] = DB::table("CategoriaDepartamento AS CD")->join("Departamento AS D", "D.id", "CD.idDepartamento")
+            ->select("departamento")->where("idCategoria", $catId)->first()->departamento;
+        }
+
+        $colores = DB::table("ProductoColor AS PC")->join("Color as C", "C.id", "PC.idColor")
+          ->select("color")->get()->map(fn($item) => $item->color);
+      
+        $tags = DB::table('Tag as T')->join("ProductoTag as PT", "PT.idTag", "T.id")->select("tag")
+          ->distinct()->where("PT.idProducto", $id)->get()->map(fn($item) => $item->tag);
+      
+
+
+        $filters = [
+          [
+            "placeholder" => "Categorías",
+            "checks" => $categorias
+          ],
+          [
+            "placeholder" => "Departamentos",
+            "checks" => $departamentos
+          ],
+          [
+            "placeholder" => "Colores",
+            "checks" => $colores
+          ],
+          [
+            "placeholder" => "Tallas",
+            "checks" => []
+          ],
+          [
+            "placeholder" => "Tags",
+            "checks" => $tags
+          ]
+        ];
+    }
+    return $filters;
   }
 }
