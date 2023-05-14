@@ -125,12 +125,9 @@ class Producto extends Model
     $producto = DB::table("Producto AS p")->select("*", "p.id AS id");
 
     if (!$id) {
-      $results = $producto
-        ->leftJoin("ProductoImagen AS pi", "p.id", "pi.idProducto")
-        ->get();
+      $results = $producto->get();
 
       foreach ($results as $key => $result) {
-        // $image = DB::table("Imagen")->where("id", $result->idImagen)->first();
         $modelos = DB::table("Modelos AS m")->select("stock")->where("m.idProducto", $result->id)->get();
 
         $stock = 0;
@@ -138,9 +135,6 @@ class Producto extends Model
           $stock += $modelo->stock;
         }
         $result->stock = $stock;
-        // if ($image) {
-        //   $result->thumb = Imagen::thumb($image->image);
-        // }
       }
       return $results;
     }
