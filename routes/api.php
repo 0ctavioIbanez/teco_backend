@@ -67,6 +67,11 @@ Route::group(["prefix" => "/producto"], function() {
   Route::post("/delete-tag", "ProductoController@deleteTag");
 });
 
+// Banners
+Route::group(["prefix" => "/banners"], function() {
+  Route::get("/get", "BannerController@get");
+  Route::post("/upload", "BannerController@upload");
+});
 
 // ====================== Public
 Route::get("scaffolding", "TiendaController@getScaffolding");

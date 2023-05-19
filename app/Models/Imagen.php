@@ -25,6 +25,16 @@ class Imagen extends Model
       ]);
     }
 
+    public static function insert($image, $folder, $name = "") {
+      if (!$image) {
+        return;
+      }
+
+      $url = $folder."/".time().$image->name;
+      Storage::disk('public')->put($url, base64_decode($image->data));
+      return $url;
+    }
+
     public static function thumb($base64)
     {
       $image = explode(',', $base64)[1];
