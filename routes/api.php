@@ -71,6 +71,7 @@ Route::group(["prefix" => "/producto"], function() {
 Route::group(["prefix" => "/banners"], function() {
   Route::get("/get", "BannerController@get");
   Route::post("/upload", "BannerController@upload");
+  Route::post("/erase", "BannerController@erase");
 });
 
 // ====================== Public

@@ -11,10 +11,14 @@ class BannerController extends Controller
         return response(Banner::get());
     }
 
-    public static function upload(Request $request) {
+    public function upload(Request $request) {
         if (Banner::upload($request) > 0) {
             return response(["message" => "ok"]);
         }
         return response(["message" => "Algo salió mal"], 500);
+    }
+
+    public function erase(Request $request) {
+        return response(Banner::erase($request));
     }
 }

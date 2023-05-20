@@ -14,7 +14,10 @@ class Banner extends Model
     public static function get() {
         $url = url('');
         $url = str_replace("public", "storage", $url);
-        $paths = DB::table("Banner")->select("url")->get()->map(fn($item) => "$url/app/public/$item->url");
+        $paths = DB::table("Banner")->select("url", "id")->get()->map(fn($item) => [
+            "banner" => "$url/app/public/$item->url",
+            "id" => $item->id
+        ]);
         return $paths;
     }
 
@@ -23,5 +26,16 @@ class Banner extends Model
         return DB::table("Banner")->insertGetId([
             "url" => $url,
         ]);
+    }
+
+    public static function erase($request) {
+        $banner = DB::table("Banner")->where("id", $request->id);
+        $path = $banner->first()->url;
+        $banner->delete();
+        $stat = Imagen::erase($path);
+        if ($stat) {
+            return ["message" => "Banner eliminado correctamente"];
+        }
+        return ["message" => "Algo salió mal"];
     }
 }

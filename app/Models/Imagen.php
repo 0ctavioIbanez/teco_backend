@@ -35,6 +35,10 @@ class Imagen extends Model
       return $url;
     }
 
+    public static function erase($path) {
+      Storage::disk('public')->delete($path);
+    }
+
     public static function thumb($base64)
     {
       $image = explode(',', $base64)[1];

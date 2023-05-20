@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Departamento;
 use App\Models\Categoria;
 use App\Models\Producto;
+use App\Models\Banner;
 
 class TiendaController extends Controller
 {
@@ -15,7 +16,8 @@ class TiendaController extends Controller
         "categories" => Categoria::getScaffolding(),
         "recommended" => [],
         "mostSellers" => [],
-        "offers" => []
+        "offers" => [],
+        "banners" => Banner::get()
       ];
     }
 
