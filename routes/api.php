@@ -74,6 +74,12 @@ Route::group(["prefix" => "/banners"], function() {
   Route::post("/erase", "BannerController@erase");
 });
 
+// Bodega
+Route::group(["prefix" => "/bodega"], function() {
+  Route::get("/get/{id?}", "BodegaController@get");
+  Route::post("/create", "BodegaController@create");
+});
+
 // ====================== Public
 Route::get("scaffolding", "TiendaController@getScaffolding");
 Route::get("store", "ProductoController@getTienda");
