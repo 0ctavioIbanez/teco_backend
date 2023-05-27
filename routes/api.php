@@ -56,6 +56,7 @@ Route::group(["prefix" => "/producto"], function() {
   Route::post("/create", "ProductoController@create");
   Route::get("/get/{id?}", "ProductoController@get");
   Route::post("/search", "ProductoController@search");
+  Route::get("/search-product/{term?}", "ProductoController@searchProduct");
   Route::post("/update-color", "ProductoController@updateColor");
   Route::post("/create-color", "ProductoController@createColor");
   Route::post("/delete-color", "ProductoController@deleteColor");
@@ -65,6 +66,11 @@ Route::group(["prefix" => "/producto"], function() {
   Route::post("/delete-modelo-image", "ProductoController@deleteModeloImage");
   Route::post("/create-tag", "ProductoController@createTag");
   Route::post("/delete-tag", "ProductoController@deleteTag");
+});
+
+// Modelos
+Route::group(["prefix" => "/modelos"], function() {
+  Route::get("/get/{idProducto}", "ModeloController@get");
 });
 
 // Banners
@@ -78,6 +84,11 @@ Route::group(["prefix" => "/banners"], function() {
 Route::group(["prefix" => "/bodega"], function() {
   Route::get("/get/{id?}", "BodegaController@get");
   Route::post("/create", "BodegaController@create");
+  Route::get("/getCeldas/{id?}", "CeldaController@get");
+  Route::get("/getCeldaProducts/{id}", "CeldaController@getProducts");
+  Route::post("/createCelda", "CeldaController@create");
+  Route::post("/addCeldaItem", "CeldaController@addCeldaItem");
+  Route::post("/moveCelda", "CeldaController@move");
 });
 
 // ====================== Public

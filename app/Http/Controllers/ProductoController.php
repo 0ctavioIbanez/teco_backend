@@ -110,4 +110,8 @@ class ProductoController extends Controller
   {
     return response(Tags::remove($request));
   }
+
+  public function searchProduct(Request $request) {
+    return response(Producto::searchProduct($request->term));
+  }
 }

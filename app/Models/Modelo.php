@@ -28,4 +28,19 @@ class Modelo extends Model
       DB::table("ModelosImagen")->where("idImagen", $request->idImage)->delete();
       return ["message" => "Imágen eliminada correctamente"];
     }
+
+    public static function get($request) {
+      $modelo = DB::table("Modelos AS m")
+        ->join("Producto AS p", "p.id", "m.idProducto")
+        ->join("ProductoColor AS pc", "pc.idModelo", "m.id")
+        ->join("Color as c", "c.id", "pc.idColor")
+        ->leftJoin("ProductoTalla AS pt", "pt.idProducto", "p.id")
+        ->leftJoin("Talla as t", "t.id", "pt.idTalla");
+
+      if ($request->idProducto) {
+        return $modelo->where("m.idProducto", $request->idProducto)->get();
+      }
+
+      return $modelo->get();
+    }
 }

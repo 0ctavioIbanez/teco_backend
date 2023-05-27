@@ -326,6 +326,10 @@ class Producto extends Model
     return $result;
   }
 
+  public static function searchProduct($term) {
+    return DB::table("Producto")->where("nombre", "LIKE", "%$term%")->select("nombre", "id")->get();
+  }
+
   public static function getProductDetail($request)
   {
     // return explode("&", $request->fullUrl());
