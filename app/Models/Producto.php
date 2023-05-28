@@ -38,6 +38,31 @@ class Producto extends Model
     return $id;
   }
 
+  public static function updateGeneral($request)
+  {
+    DB::table("Producto")
+      ->where("id", $request->idProducto)
+      ->update([
+        "codigo" => $request->codigo,
+        "nombre" => $request->nombre,
+        "descripcion" => $request->descripcion,
+        "costo" => $request->costo,
+        "precio" => $request->precio,
+        "visible" => $request->visible,
+        "nota" => $request->nota,
+      ]);
+
+    DB::table("ProductoCategoria")->where("idProducto", $request->idProducto)->delete();
+
+    foreach ($request->categorias as $key => $categoria) {
+      DB::table("ProductoCategoria")->insert([
+        "idProducto" => $request->idProducto,
+        "idCategoria" => $categoria['categoria']
+      ]);
+    }
+    return ["message" => "Producto actualizado correctamente"];
+  }
+
   public static function createDetalles($request, $idProducto)
   {
     // Categorias
@@ -156,8 +181,12 @@ class Producto extends Model
     $producto->departamentos = DB::table("ProductoDepartamento AS pd")->select("d.*", "i.image")->join('Departamento AS d', 'd.id', 'pd.idDepartamento')
       ->leftJoin("Imagen as i", "i.id", "d.idImagenMain")->where('pd.idProducto', $id)->get();
 
-    $producto->categorias = DB::table("ProductoCategoria as pc")->select("c.*", "i.image")->join("Categoria as c", 'c.id', 'pc.idCategoria')
-      ->leftJoin('Imagen as i', "i.id", "c.idImagenMain")->where('pc.idProducto', $id)->get();
+    $producto->categorias = DB::table("ProductoCategoria as pc")
+      ->select("c.*", "i.image", "pc.id as idPC")
+      ->join("Categoria as c", 'c.id', 'pc.idCategoria')
+      ->leftJoin('Imagen as i', "i.id", "c.idImagenMain")
+      ->where('pc.idProducto', $id)
+      ->get();
 
     $producto->tags = DB::table("ProductoTag as pt")->select("t.*")->join("Tag as t", 't.id', 'pt.idTag')->where('pt.idProducto', $id)->get();
     $producto->tallas = DB::table("ProductoTalla as pt")->select("t.*")->join("Talla as t", "t.id", "pt.idTalla")->where('pt.idProducto', $id)->get();
@@ -169,6 +198,24 @@ class Producto extends Model
       $modelo->colores = DB::table("ProductoColor AS PC", "PC.idModelo", "m.id")->select("color", "hex", "idColor")->join("Color as C", "C.id", "PC.idColor")
         ->where("PC.idModelo", $modelo->id)->get();
       $modelo->images = DB::table("ModelosImagen as mi")->select("i.image", "i.id")->join("Imagen as i", "i.id", "mi.idImagen")->where("mi.idModelo", $modelo->id)->get();
+      
+      $modelo->almacen = DB::table("ProductoCelda as pc")
+        ->join("BodegaCelda as bc", "bc.idCelda", "pc.idCelda")
+        ->join("Bodega as b", "b.id", "bc.idBodega")
+        ->where("pc.idProducto", $id)
+        ->where("pc.idModelo", $modelo->id)
+        ->select("bc.idBodega", "pc.idCelda", "pc.cantidad")
+        ->first();
+
+      foreach ($modelo->almacen as $key => $almacen) {
+        $modelo->test = $modelo->almacen;
+      }
+      $modelo->almacen->celdas = DB::table("Celda as c")
+        ->join("BodegaCelda as bc", "bc.idCelda", "c.id")
+        ->where("bc.idBodega", $modelo->almacen->idBodega)
+        ->select('celda', 'idCelda')
+        ->get()->map(fn($item) => ["value" => $item->idCelda, "label" => $item->celda]);
+      
     }
 
     $producto->modelos = $modelos;
@@ -326,7 +373,8 @@ class Producto extends Model
     return $result;
   }
 
-  public static function searchProduct($term) {
+  public static function searchProduct($term)
+  {
     return DB::table("Producto")->where("nombre", "LIKE", "%$term%")->select("nombre", "id")->get();
   }
 

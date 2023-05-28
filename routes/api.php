@@ -61,11 +61,14 @@ Route::group(["prefix" => "/producto"], function() {
   Route::post("/create-color", "ProductoController@createColor");
   Route::post("/delete-color", "ProductoController@deleteColor");
   Route::post("/create-modelo", "ProductoController@createModelo");
+  Route::post("/update-modelo", "ModeloController@update");
+  Route::post("/delete-modelo", "ModeloController@delete");
   Route::post("/delete-image", "ProductoController@deleteImage");
   Route::post("/create-image", "ProductoController@creteImage");
   Route::post("/delete-modelo-image", "ProductoController@deleteModeloImage");
   Route::post("/create-tag", "ProductoController@createTag");
   Route::post("/delete-tag", "ProductoController@deleteTag");
+  Route::post("/update", "ProductoController@update");
 });
 
 // Modelos

@@ -11,6 +11,7 @@ use App\Models\Tags;
 
 class ProductoController extends Controller
 {
+
   public function create(Request $request)
   {
     $exists = Producto::validate($request->codigo);
@@ -20,14 +21,16 @@ class ProductoController extends Controller
     }
 
     $idProducto = Producto::createGeneral($request);
-    // Producto::createDetalles($request->detalles, $idProducto);
-    // Producto::createModelos($request->modelos, $idProducto);
 
     return response([
       "status" => $exists,
       "message" => "Producto creado correctamente",
       "productId" => $idProducto
     ]);
+  }
+
+  public function update(Request $request) {
+    return response(Producto::updateGeneral($request));
   }
 
   public function get($id = null)
