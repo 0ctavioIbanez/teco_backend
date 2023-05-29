@@ -207,15 +207,13 @@ class Producto extends Model
         ->select("bc.idBodega", "pc.idCelda", "pc.cantidad")
         ->first();
 
-      foreach ($modelo->almacen as $key => $almacen) {
-        $modelo->test = $modelo->almacen;
-      }
-      $modelo->almacen->celdas = DB::table("Celda as c")
+      if ($modelo->almacen) {
+        $modelo->almacen->celdas = DB::table("Celda as c")
         ->join("BodegaCelda as bc", "bc.idCelda", "c.id")
         ->where("bc.idBodega", $modelo->almacen->idBodega)
         ->select('celda', 'idCelda')
         ->get()->map(fn($item) => ["value" => $item->idCelda, "label" => $item->celda]);
-      
+      }
     }
 
     $producto->modelos = $modelos;
