@@ -7,6 +7,7 @@ use App\Models\Departamento;
 use App\Models\Categoria;
 use App\Models\Producto;
 use App\Models\Banner;
+use App\Models\Card;
 
 class TiendaController extends Controller
 {
@@ -17,7 +18,8 @@ class TiendaController extends Controller
         "recommended" => [],
         "mostSellers" => [],
         "offers" => [],
-        "banners" => Banner::get()
+        "banners" => Banner::get(),
+        "cards" => Card::getCards()
       ];
     }
 
