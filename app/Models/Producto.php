@@ -486,6 +486,28 @@ class Producto extends Model
       ->select("T.id", "talla")
       ->where("PT.idProducto", $id)
       ->get();
+
+    $modelos = DB::table("Modelos as M")->where("M.idProducto", $id)->get();
+
+    foreach ($modelos as $key => $modelo) {
+      $modelo->colors = DB::table("ProductoColor as pc")
+        ->join("Color as c", "c.id", "pc.idColor")
+        ->select("color", "hex", "idModelo as id")
+        ->where("pc.idModelo", $modelo->id)->get();
+
+      $modelo->images = DB::table("Imagen as i")
+        ->join("ModelosImagen as mi", "i.id", "mi.idImagen")
+        ->where("mi.idModelo", $modelo->id)
+        ->select("image", "mi.idModelo as id")
+        ->get();
+    }
+    // ->leftJoin("ModelosImagen as mi", "mi.idModelo", "M.id")
+    // ->leftJoin("Imagen as i", "i.id", "mi.idImagen")
+
+    
+
+    $product->modelos = $modelos;
+
     return $product;
   }
 

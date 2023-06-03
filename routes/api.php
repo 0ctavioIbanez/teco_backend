@@ -83,7 +83,7 @@ Route::group(["prefix" => "/banners"], function() {
   Route::post("/erase", "BannerController@erase");
 });
 
-// Modelos
+// Cards
 Route::group(["prefix" => "/cards"], function() {
   Route::get("/get", "CardController@get");
   Route::post("/create", "CardController@create");

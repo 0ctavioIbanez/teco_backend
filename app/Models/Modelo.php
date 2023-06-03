@@ -12,14 +12,24 @@ class Modelo extends Model
 
   public static function createModelo($request)
   {
-    return DB::table("Modelos")->insert([
+     $idModelo = DB::table("Modelos")->insertGetId([
       "idProducto" => $request->id,
       "stock" => $request->stock,
       "visibleSinStock" => $request->visibleSinStock,
       "visible" => $request->visible,
       "costoExtra" => $request->costoExtra,
-      "precioExtra" => $request->precioExtra
+      "precioExtra" => $request->precioExtra,
+      "talla" => $request->talla
     ]);
+    
+    DB::table("ProductoCelda")->insert([
+      "idCelda" => $request->celda,
+      "idProducto" => $request->id,
+      "idModelo" => $idModelo,
+      "cantidad" => $request->cantidad
+    ]);
+
+    return ["message" => "Modelo creado correctamente"];
   }
 
   public static function updateModelo($request)
@@ -32,7 +42,8 @@ class Modelo extends Model
         "visibleSinStock" => $request->visibleSinStock,
         "visible" => $request->visible,
         "costoExtra" => $request->costoExtra,
-        "precioExtra" => $request->precioExtra
+        "precioExtra" => $request->precioExtra,
+        "talla" => $request->talla
       ]);
     
     DB::table("ProductoCelda")
