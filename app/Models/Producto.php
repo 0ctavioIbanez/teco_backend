@@ -388,20 +388,17 @@ class Producto extends Model
 
     $results = DB::table("Producto AS P")
       ->select("P.id AS id", "codigo", "nombre", "descripcion", "precio", "categoria")
-      // ->leftJoin("ProductoDepartamento as PD", "PD.idProducto", "P.id")
-      // ->leftJoin("Departamento AS D", "D.id", "PD.idDepartamento")
       ->join("ProductoCategoria AS PC", "PC.idProducto", "P.id")
       ->join("Categoria AS C", "C.id", "PC.idCategoria")
       ->join("CategoriaDepartamento as CD", "CD.idCategoria", "C.id");
-
-    // return $results->get();
 
 
     if (isset($request->search)) {
       $results = $results->leftJoin("ProductoTag AS PT", "PT.idProducto", "P.id")
         ->leftJoin("Tag AS T", "T.id", "PT.idTag")
         ->where("nombre", "LIKE", "%$request->search%")
-        ->orWhere("tag", "LIKE", "%$request->search%");
+        ->orWhere("tag", "LIKE", "%$request->search%")
+        ->groupBy('P.id');
     }
 
     if (isset($request->section)) {
