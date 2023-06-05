@@ -385,9 +385,10 @@ class Producto extends Model
     // return explode("&", $request->fullUrl());
     $colors = [];
     $tags   = [];
+    $select = ["P.id AS id", "codigo", "nombre", "descripcion", "precio", "categoria"];
+    $departamentos = "";
 
     $results = DB::table("Producto AS P")
-      ->select("P.id AS id", "codigo", "nombre", "descripcion", "precio", "categoria")
       ->join("ProductoCategoria AS PC", "PC.idProducto", "P.id")
       ->join("Categoria AS C", "C.id", "PC.idCategoria")
       ->join("CategoriaDepartamento as CD", "CD.idCategoria", "C.id");
@@ -402,14 +403,15 @@ class Producto extends Model
     }
 
     if (isset($request->section)) {
-      $results = $results->where("CD.idDepartamento", $request->section);
+      $results = $results->join("Departamento as D", "D.id", "CD.idDepartamento")->where("CD.idDepartamento", $request->section);
+      array_push($select, "departamento");
     }
 
     if (isset($request->category)) {
       $results = $results->where("C.id", $request->category);
     }
 
-    $results = $results->where('P.visible', true)->get();
+    $results = $results->where('P.visible', true)->select($select)->get();
 
     if (count($results->toArray()) < 0) {
       return [];
@@ -448,8 +450,11 @@ class Producto extends Model
     $tags = $tagCollection->unique()->toArray();
     $tags = array_map(fn ($item) => $item[0], $tags);
 
+    $departamentos = $results->map(fn($item) => $item?->departamento);
+
     return [
       "results" => $results,
+      "departamentos" => $departamentos,
       "filters" => [
         "colors" => $colors,
         "tags" => $tags

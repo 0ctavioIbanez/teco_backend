@@ -35,7 +35,8 @@ class Celda extends Model
             ->join("Modelos as m", "m.idProducto", "p.id")
             ->leftJoin("ProductoTalla as pt", "pt.idProducto", "p.id")
             ->leftJoin("Talla as t", "t.id", "pt.idTalla")
-            ->select("nombre", "codigo", "cantidad", "p.id as idProducto", "talla", "m.id as idModelo", "pc.id as idCelda")
+            ->select("nombre", "codigo", "cantidad", "p.id as idProducto", "t.talla", "m.id as idModelo", "pc.id as idCelda")
+            ->groupBy("p.id")
             ->get();
 
         foreach ($productos as $key => $producto) {
