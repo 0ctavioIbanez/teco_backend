@@ -122,10 +122,11 @@ class Producto extends Model
       foreach ($request["color"] as $key => $color) {
         DB::table("ProductoColor")->insert(["idProducto" => $idProducto, "idColor" => $color]);
       }
-    } else {
-      $idColor = DB::table("Color")->insert(["color" => $color]);
-      DB::table("ProductoColor")->insert(["idProducto" => $idProducto, "idColor" => $idColor]);
     }
+    // else {
+    //   $idColor = DB::table("Color")->insert(["color" => $color]);
+    //   DB::table("ProductoColor")->insert(["idProducto" => $idProducto, "idColor" => $idColor]);
+    // }
 
     $idModelo = DB::table("Modelos")->insertGetId([
       "idProducto" => $idProducto,
@@ -149,11 +150,17 @@ class Producto extends Model
   {
     $producto = DB::table("Producto AS p")->select("*", "p.id AS id");
 
+
     if (!$id) {
       $results = $producto->get();
 
+      // Pagination
+      $totalItems = $results->count();
+      $totalPages = floor($totalItems / $itemsPerPage);
+      $currentPage = 0;
+
       foreach ($results as $key => $result) {
-        $modelos = DB::table("Modelos AS m")->select("stock")->where("m.idProducto", $result->id)->paginate($itemsPerPage);
+        $modelos = DB::table("Modelos AS m")->select("stock")->where("m.idProducto", $result->id)->get();
 
         $stock = 0;
         foreach ($modelos as $key => $modelo) {
@@ -162,10 +169,7 @@ class Producto extends Model
         $result->stock = $stock;
       }
 
-      // Pagination
-      $totalItems = $results->count();
-      $totalPages = floor($totalItems / $itemsPerPage);
-      $currentPage = 0;
+
 
       return [
         "results" => $results,
@@ -382,7 +386,7 @@ class Producto extends Model
 
   public static function getProductDetail($request)
   {
-    // return explode("&", $request->fullUrl());
+    $itemsPerPage = 12;
     $colors = [];
     $tags   = [];
     $select = ["P.id AS id", "codigo", "nombre", "descripcion", "precio", "categoria"];
@@ -411,7 +415,34 @@ class Producto extends Model
       $results = $results->where("C.id", $request->category);
     }
 
-    $results = $results->where('P.visible', true)->select($select)->get();
+    // Query colors
+    if (isset($request->colors)) {
+      $colorsId = explode(",", $request->colors);
+      $productsToInclude = DB::table("ProductoColor")->select("idProducto")->groupBy("idProducto");
+      foreach ($colorsId as $key => $colorId) {
+        $productsToInclude = $productsToInclude->orWhere("idColor", $colorId);
+      }
+      $_productsId = $productsToInclude->get()->map(fn ($item) => $item->idProducto);
+
+      foreach ($_productsId as $key => $_productId) {
+        if ($key === 0)
+          $results = $results->where("idProducto", $_productId);
+        else
+          $results = $results->orWhere("idProducto", $_productId);
+      }
+    }
+
+    // Pagination
+    $currentPage = 0;
+    if (isset($request->page)) {
+      $currentPage = $request->page;
+    }
+
+    $currentItems = $itemsPerPage * $currentPage;
+    $results = $results->where('P.visible', true)->select($select)
+      ->skip($currentItems)
+      ->take($itemsPerPage)
+      ->get();
 
     if (count($results->toArray()) < 0) {
       return [];
@@ -450,7 +481,7 @@ class Producto extends Model
     $tags = $tagCollection->unique()->toArray();
     $tags = array_map(fn ($item) => $item[0], $tags);
 
-    $departamentos = $results->map(fn($item) => $item?->departamento);
+    $departamentos = $results->map(fn ($item) => $item?->departamento);
 
     return [
       "results" => $results,
