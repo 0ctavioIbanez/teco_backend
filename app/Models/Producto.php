@@ -384,6 +384,9 @@ class Producto extends Model
     return DB::table("Producto")->where("nombre", "LIKE", "%$term%")->select("nombre", "id")->get();
   }
 
+  /**
+   * Used in public search results
+   */
   public static function getProductDetail($request)
   {
     $itemsPerPage = 12;
@@ -429,6 +432,19 @@ class Producto extends Model
           $results = $results->where("idProducto", $_productId);
         else
           $results = $results->orWhere("idProducto", $_productId);
+      }
+    }
+
+    // Sorting
+    if (isset($request->sort)) {
+      if ($request->sort === 'price-asc') {
+        $results = $results->orderBy('precio', 'asc');
+      }
+      if ($request->sort === 'price-desc') {
+        $results = $results->orderBy('precio', 'desc');
+      }
+      if ($request->sort === 'newest') {
+        $results = $results->orderBy('id', 'asc');
       }
     }
 
@@ -543,15 +559,10 @@ class Producto extends Model
 
   public static function createColor($request)
   {
-    $idColor = DB::table("Color")->insertGetId([
-      "color" => $request->color,
-      "hex" => $request->hex
-    ]);
-
     return DB::table("ProductoColor")->insert([
       "idProducto" => $request->id,
       "idModelo" => $request->idModelo,
-      "idColor" => $idColor
+      "idColor" => $request->color
     ]);
   }
 
