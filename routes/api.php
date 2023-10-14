@@ -10,7 +10,8 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 // Admin
 Route::post("/register", "AdminController@register");
-Route::post("/test", "DepartamentoController@test");
+Route::post("/login", "AdminController@login");
+Route::get("/check-auth", "AdminController@checkAuth")->middleware("auth:api");
 
 // Departamentos
 Route::group(["prefix" => "/departamento"], function() {
@@ -19,7 +20,7 @@ Route::group(["prefix" => "/departamento"], function() {
   Route::post("/removeImage", "DepartamentoController@removeImage");
   Route::post("/remove", "DepartamentoController@remove");
   Route::get("/get/{id?}", "DepartamentoController@get");
-});
+})->middleware("auth:api");
 
 // Categorias
 Route::group(["prefix" => "/categoria"], function() {
@@ -29,27 +30,27 @@ Route::group(["prefix" => "/categoria"], function() {
   Route::post("/deleteAll", "CategoriaController@deleteAll");
   Route::post("/removeImage", "CategoriaController@removeImage");
   Route::get("/departamentos", "CategoriaController@getCategoriaDepartamento");
-});
+})->middleware("auth:api");
 
 // Colores
 Route::group(["prefix" => "/color"], function() {
   Route::get("/get", "ColorController@get");
-});
+})->middleware("auth:api");
 
 // Tallas
 Route::group(["prefix" => "/talla"], function() {
   Route::get("/get", "TallaController@get");
-});
+})->middleware("auth:api");
 
 // Tags
 Route::group(["prefix" => "/tags"], function() {
   Route::get("/get", "TagsController@get");
-});
+})->middleware("auth:api");
 
 // Codigos
 Route::group(["prefix" => "/code"], function() {
   Route::get("/generate", "CodeController@generate");
-});
+})->middleware("auth:api");
 
 // Producto
 Route::group(["prefix" => "/producto"], function() {
@@ -69,19 +70,19 @@ Route::group(["prefix" => "/producto"], function() {
   Route::post("/create-tag", "ProductoController@createTag");
   Route::post("/delete-tag", "ProductoController@deleteTag");
   Route::post("/update", "ProductoController@update");
-});
+})->middleware("auth:api");
 
 // Modelos
 Route::group(["prefix" => "/modelos"], function() {
   Route::get("/get/{idProducto}", "ModeloController@get");
-});
+})->middleware("auth:api");
 
 // Banners
 Route::group(["prefix" => "/banners"], function() {
   Route::get("/get", "BannerController@get");
   Route::post("/upload", "BannerController@upload");
   Route::post("/erase", "BannerController@erase");
-});
+})->middleware("auth:api");
 
 // Cards
 Route::group(["prefix" => "/cards"], function() {
@@ -89,7 +90,7 @@ Route::group(["prefix" => "/cards"], function() {
   Route::post("/create", "CardController@create");
   Route::post("/remove", "CardController@remove");
   Route::post("/update", "CardController@update");
-});
+})->middleware("auth:api");
 
 // Bodega
 Route::group(["prefix" => "/bodega"], function() {
@@ -100,7 +101,7 @@ Route::group(["prefix" => "/bodega"], function() {
   Route::post("/createCelda", "CeldaController@create");
   Route::post("/addCeldaItem", "CeldaController@addCeldaItem");
   Route::post("/moveCelda", "CeldaController@move");
-});
+})->middleware("auth:api");
 
 // ====================== Public
 Route::get("scaffolding", "TiendaController@getScaffolding");

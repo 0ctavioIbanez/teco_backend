@@ -10,8 +10,7 @@ class AdminController extends Controller
 
   public function register(Request $request, User $user)
   {
-
-    $isValid = $request->validate([
+    $request->validate([
       'email' => 'email|required|unique:users',
       'password' => 'required'
     ]);
@@ -37,5 +36,13 @@ class AdminController extends Controller
     $accessToken = auth()->user()->createToken('authToken')->accessToken;
 
     return response()->json(["token" => $accessToken, "user" => auth()->user()]);
+  }
+
+  public function checkAuth(Request $request) {
+    $credentials = $request->validate([
+      'email' => 'email|required',
+      'password' => 'required'
+    ]);
+    // return response(auth()->attempt($credentials));
   }
 }
