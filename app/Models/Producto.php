@@ -356,6 +356,7 @@ class Producto extends Model
       ->where('visible', true)
       ->where('nombre', 'LIKE', "%$request->kw%")
       ->select("nombre", "idDepartamento", "pc.idCategoria")
+      ->groupBy("nombre")
       ->get();
 
     if ($products->count() > 0) {
@@ -363,9 +364,9 @@ class Producto extends Model
     }
 
     // Tags
-    $tags = DB::table("Tag")->where('tag', 'LIKE', "%$request->kw%")->get();
+    $tags = DB::table("Tag")->where('tag', 'LIKE', "%$request->kw%")->groupBy('tag')->get();
     if (count($tags->toArray()) > 0) {
-      $mapedTag = array_map(fn ($item) => ["id" => $item->id, "nombre" => $item->tag], $tags->toArray());
+      $mapedTag = array_map(fn ($item) => ["id" => $item->id, "nombre" => "$item->tag"], $tags->toArray());
       array_push($result, array('title' => 'Etiquetas', 'items' => $mapedTag));
     }
 
@@ -411,6 +412,9 @@ class Producto extends Model
 
     if (isset($request->section)) {
       $results = $results->join("Departamento as D", "D.id", "CD.idDepartamento")->where("CD.idDepartamento", $request->section);
+      array_push($select, "departamento");
+    } else {
+      $results = $results->join("Departamento as D", "D.id", "CD.idDepartamento");
       array_push($select, "departamento");
     }
 
@@ -497,7 +501,14 @@ class Producto extends Model
     $tags = $tagCollection->unique()->toArray();
     $tags = array_map(fn ($item) => $item[0], $tags);
 
-    $departamentos = $results->map(fn ($item) => $item?->departamento);
+    $_departamentos = $results->map(fn ($item) => $item?->departamento)->toArray();
+    $departamentos = [];
+    foreach ($_departamentos as $depto) {
+      if (!in_array($depto, $departamentos)) {
+        array_push($departamentos, $depto);
+      }
+    }
+    
 
     return [
       "results" => $results,

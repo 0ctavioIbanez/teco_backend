@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
 {
@@ -39,10 +40,9 @@ class AdminController extends Controller
   }
 
   public function checkAuth(Request $request) {
-    $credentials = $request->validate([
-      'email' => 'email|required',
-      'password' => 'required'
-    ]);
-    // return response(auth()->attempt($credentials));
+    return response([
+      "isAuth" => Auth::guard('api')->check(),
+      "user" => Auth::guard('api')->user()
+  ]);
   }
 }
