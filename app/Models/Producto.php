@@ -135,6 +135,7 @@ class Producto extends Model
       "visible" => $request["visible"],
       "costoExtra" => $request["costoExtra"],
       "precioExtra" => $request["precioExtra"],
+      "idTalla" => $request["talla"]
     ]);
 
     // Imágenes

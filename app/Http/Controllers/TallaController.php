@@ -13,4 +13,11 @@ class TallaController extends Controller
         Talla::get()
       );
     }
+
+    public function create(Request $request) {
+      $request->validate([
+        'talla' => 'required|unique:Talla|max:255',
+      ]);
+      return response( Talla::nueva($request) );
+    }
 }

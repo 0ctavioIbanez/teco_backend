@@ -14,4 +14,10 @@ class Talla extends Model
     {
       return DB::table("Talla")->get();
     }
+
+    public static function nueva($request) {
+      DB::table('Talla')->insert([
+        'talla' => strtoupper($request->talla)
+      ]);
+    }
 }

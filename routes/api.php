@@ -40,6 +40,7 @@ Route::group(["prefix" => "/color"], function() {
 // Tallas
 Route::group(["prefix" => "/talla"], function() {
   Route::get("/get", "TallaController@get")->middleware("auth:api");
+  Route::post("/create", "TallaController@create")->middleware("auth:api");
 });
 
 // Tags
@@ -75,6 +76,7 @@ Route::group(["prefix" => "/producto"], function() {
 // Modelos
 Route::group(["prefix" => "/modelos"], function() {
   Route::get("/get/{idProducto}", "ModeloController@get")->middleware("auth:api");
+  Route::post("/upload-image", "ModeloController@uploadImage")->middleware("auth:api");
 });
 
 // Banners

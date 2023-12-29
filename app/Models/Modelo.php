@@ -19,17 +19,17 @@ class Modelo extends Model
       "visible" => $request->visible,
       "costoExtra" => $request->costoExtra,
       "precioExtra" => $request->precioExtra,
-      "talla" => $request->talla
+      "idTalla" => $request->talla
     ]);
     
-    DB::table("ProductoCelda")->insert([
-      "idCelda" => $request->celda,
-      "idProducto" => $request->id,
-      "idModelo" => $idModelo,
-      "cantidad" => $request->cantidad
-    ]);
+    // DB::table("ProductoCelda")->insert([
+    //   "idCelda" => $request->celda,
+    //   "idProducto" => $request->id,
+    //   "idModelo" => $idModelo,
+    //   "cantidad" => $request->cantidad
+    // ]);
 
-    return ["message" => "Modelo creado correctamente"];
+    return $idModelo;
   }
 
   public static function updateModelo($request)
@@ -72,16 +72,41 @@ class Modelo extends Model
   {
     $modelo = DB::table("Modelos AS m")
       ->join("Producto AS p", "p.id", "m.idProducto")
-      ->join("ProductoColor AS pc", "pc.idModelo", "m.id")
-      ->join("Color as c", "c.id", "pc.idColor")
-      ->leftJoin("ProductoTalla AS pt", "pt.idProducto", "p.id")
-      ->leftJoin("Talla as t", "t.id", "pt.idTalla");
+      ->join("Talla AS T", "T.id", "m.idTalla");
+
+      
+
+      // ->join("ProductoColor AS pc", "pc.idModelo", "m.id");
+      // ->join("Color as c", "c.id", "pc.idColor")
+      // ->leftJoin("ProductoTalla AS pt", "pt.idProducto", "p.id")
+      // ->leftJoin("Talla as t", "t.id", "pt.idTalla");
 
     if ($request->idProducto) {
-      return $modelo->where("m.idProducto", $request->idProducto)->get();
+      $modelos = $modelo->where("m.idProducto", $request->idProducto)->get();
+
+      foreach ($modelos as $key => $modelo) {
+        $modelo->images = DB::table("Imagen as I")
+          ->join("ModelosImagen as MI", "MI.idImagen", "I.id")
+          ->where("MI.idModelo", $modelo->id)
+          ->get();
+      }
+
+      return $modelos;
     }
 
     return $modelo->get();
+  }
+
+  public static function uploadImage($request) {
+    $modelId = $request->idModel;
+
+    foreach ($request->images as $image) {
+      $idImage = Imagen::upload($image);
+      DB::table('ModelosImagen')->insert([
+        "idModelo" => $modelId,
+        "idImagen" => $idImage
+      ]);
+    }
   }
 
   public static function remove($idModelo) {
