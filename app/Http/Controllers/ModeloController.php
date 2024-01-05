@@ -28,4 +28,16 @@ class ModeloController extends Controller
     public function uploadImage(Request $request) {
         return response(Modelo::uploadImage($request));
     }
+
+    public function deleteImage(Request $request) {
+        return response(Modelo::deleteImage($request));
+    }
+
+    public function createColor(Request $request) {
+        return response(Modelo::createColor($request));
+    }
+
+    public function deleteColor(Request $request) {
+        return response(Modelo::deleteColor($request));
+    }
 }

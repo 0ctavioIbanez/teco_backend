@@ -77,6 +77,9 @@ Route::group(["prefix" => "/producto"], function() {
 Route::group(["prefix" => "/modelos"], function() {
   Route::get("/get/{idProducto}", "ModeloController@get")->middleware("auth:api");
   Route::post("/upload-image", "ModeloController@uploadImage")->middleware("auth:api");
+  Route::post("/delete-image/{idModeloImagen}/{idImage}", "ModeloController@deleteImage")->middleware("auth:api");
+  Route::post("/create-color", "ModeloController@createColor")->middleware("auth:api");
+  Route::post("/delete-color/{idModelColor}", "ModeloController@deleteColor")->middleware("auth:api");
 });
 
 // Banners
