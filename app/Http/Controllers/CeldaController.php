@@ -29,4 +29,8 @@ class CeldaController extends Controller
     public function move(Request $request){
         return response(Celda::move($request));
     }
+
+    public function deleteModel(Request $request) {
+        return response(Celda::deleteModel($request));
+    }
 }

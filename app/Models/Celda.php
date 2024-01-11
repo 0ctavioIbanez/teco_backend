@@ -72,4 +72,9 @@ class Celda extends Model
             ->where("id", $request->celdaOrigin)
             ->update(["idCelda" => $request->celdaToMove]);
     }
+
+    public static function deleteModel($request) {
+        DB::table('ProductoCelda')->where("id", $request->idModelCelda)->delete();
+        return ["message" => "Ubicación eliminada correctamente"];
+    }
 }

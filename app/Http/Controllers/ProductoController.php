@@ -117,4 +117,8 @@ class ProductoController extends Controller
   public function searchProduct(Request $request) {
     return response(Producto::searchProduct($request->term));
   }
+
+  public function getImages(Request $request) {
+    return response(Producto::getImages($request));
+  }
 }

@@ -632,4 +632,12 @@ class Producto extends Model
     }
     return $filters;
   }
+
+  public static function getImages($request) {
+    return DB::table("Imagen AS I")
+      ->select("PI.id as idPI", "I.id AS idImagen", "image")
+      ->join("ProductoImagen AS PI", "I.id", "PI.idImagen")
+      ->where("PI.idProducto", $request->productId)
+      ->get();
+  }
 }

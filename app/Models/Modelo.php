@@ -94,7 +94,7 @@ class Modelo extends Model
         ->join("BodegaCelda as BC", "BC.idBodega", "B.id")
         ->join("ProductoCelda AS PC", "PC.idCelda", "BC.idCelda")
         ->join("Celda AS C", "C.id", "PC.idCelda")
-        ->select("PC.id AS idPC", "bodega", "B.descripcion as bodega_descripcion", "C.descripcion AS celda_descripcion", "celda", "cantidad", "B.id as idBodega")
+        ->select("PC.id AS idPC", "C.id AS idCelda", "bodega", "B.descripcion as bodega_descripcion", "C.descripcion AS celda_descripcion", "celda", "cantidad", "B.id as idBodega")
         ->where("PC.idModelo", $modelo->idModelo)->get();
       }
 

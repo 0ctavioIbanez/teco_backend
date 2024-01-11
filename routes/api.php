@@ -57,6 +57,7 @@ Route::group(["prefix" => "/code"], function() {
 Route::group(["prefix" => "/producto"], function() {
   Route::post("/create", "ProductoController@create")->middleware("auth:api");
   Route::get("/get/{id?}", "ProductoController@get")->middleware("auth:api");
+  Route::get("/get-images/{productId}", "ProductoController@getImages")->middleware("auth:api");
   Route::post("/search", "ProductoController@search")->middleware("auth:api");
   Route::get("/search-product/{term?}", "ProductoController@searchProduct")->middleware("auth:api");
   Route::post("/update-color", "ProductoController@updateColor")->middleware("auth:api");
@@ -106,6 +107,7 @@ Route::group(["prefix" => "/bodega"], function() {
   Route::post("/createCelda", "CeldaController@create")->middleware("auth:api");
   Route::post("/addCeldaItem", "CeldaController@addCeldaItem")->middleware("auth:api");
   Route::post("/moveCelda", "CeldaController@move")->middleware("auth:api");
+  Route::delete("/delete-model/{idModelCelda}", "CeldaController@deleteModel")->middleware("auth:api");
 });
 
 // ====================== Public

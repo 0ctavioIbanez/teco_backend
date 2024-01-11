@@ -59,9 +59,8 @@ class Imagen extends Model
 
     public static function remove($request){
           try {
-            DB::table("Imagen")->where("id", $request->idImage)->delete();
-            DB::table("ProductoImagen")->where("idImagen", $request->idImage)->delete();
-            DB::table("ModelosImagen")->where("idImagen", $request->idImage)->delete();
+            DB::table("Imagen")->where("id", $request->idImagen)->delete();
+            DB::table("ProductoImagen")->where("idImagen", $request->idPI)->delete();
             return ["status" => "ok", "message" => "Imágen eliminada correctamente"];
           } catch (\Exception $e) {
             return ["error" => $e];
@@ -75,7 +74,7 @@ class Imagen extends Model
           if ($request->isModel) {
             DB::table("ModelosImagen")->insert(["idModelo" => $request->isModel, "idImagen" => $idImage]);
           } else {
-            DB::table("ProductoImagen")->insert(["idProducto" => $request->id, "idImagen" => $idImage]);
+            DB::table("ProductoImagen")->insert(["idProducto" => $request->productId, "idImagen" => $idImage]);
           }
         }
         return ["message" => "Imágen subida correctamente"];
