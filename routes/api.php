@@ -46,6 +46,9 @@ Route::group(["prefix" => "/talla"], function() {
 // Tags
 Route::group(["prefix" => "/tags"], function() {
   Route::get("/get", "TagsController@get")->middleware("auth:api");
+  Route::get("/get-tag-product/{idProduct}", "TagsController@getTagProduct")->middleware("auth:api");
+  Route::post("/create", "TagsController@create")->middleware("auth:api");
+  Route::delete("/delete-tag-product/{idProductTag}", "TagsController@desasociateProduct")->middleware("auth:api");
 });
 
 // Codigos

@@ -11,4 +11,16 @@ class TagsController extends Controller
     {
       return response(Tags::get());
     }
+
+    public function getTagProduct(Request $request) {
+      return response(Tags::getTagProduct($request));
+    }
+
+    public function create(Request $request) {
+      return response(Tags::createProducto($request));
+    }
+
+    public function desasociateProduct(Request $request) {
+      return response(Tags::desasociateProduct($request));
+    }
 }
