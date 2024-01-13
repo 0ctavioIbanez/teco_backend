@@ -145,7 +145,6 @@ class Producto extends Model
       ->get();
 
     $producto->tags = DB::table("ProductoTag as pt")->select("t.*")->join("Tag as t", 't.id', 'pt.idTag')->where('pt.idProducto', $id)->get();
-    $producto->tallas = DB::table("ProductoTalla as pt")->select("t.*")->join("Talla as t", "t.id", "pt.idTalla")->where('pt.idProducto', $id)->get();
     $producto->colores = DB::table('Modelos AS M')->join("ModeloColor AS MC", "MC.idModelo", "M.id")
         ->join("Color AS C", "C.id", "MC.idColor")
         ->where("M.idProducto", $id)->select("C.*")->get()->map(fn ($item) => $item->color);
