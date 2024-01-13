@@ -121,4 +121,16 @@ class ProductoController extends Controller
   public function getImages(Request $request) {
     return response(Producto::getImages($request));
   }
+
+  public function addExtraCodes(Request $request) {
+    return response(Producto::addExtraCodes($request));
+  }
+
+  public function getExtraCodes(Request $request) {
+    return response(Producto::getExtraCodes($request->productId));
+  }
+
+  public function deleteExtraCode(Request $request) {
+    return response(Producto::deleteExtraCode($request->codeId));
+  }
 }

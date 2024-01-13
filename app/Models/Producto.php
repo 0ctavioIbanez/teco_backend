@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use App\Models\Imagen;
+use GuzzleHttp\Psr7\Request;
 
 class Producto extends Model
 {
@@ -73,13 +74,6 @@ class Producto extends Model
       ]);
     }
 
-    // Departamentos
-    foreach ($request["departamentos"] as $key => $departamento) {
-      DB::table("ProductoDepartamento")->insert([
-        "idProducto" => $idProducto,
-        "idDepartamento" => $departamento
-      ]);
-    }
 
     // Tags
     foreach ($request["tags"] as $key => $tag) {
@@ -135,8 +129,13 @@ class Producto extends Model
     }
 
     $producto = $producto->where('id', $id)->first();
-    $producto->departamentos = DB::table("ProductoDepartamento AS pd")->select("d.*", "i.image")->join('Departamento AS d', 'd.id', 'pd.idDepartamento')
-      ->leftJoin("Imagen as i", "i.id", "d.idImagenMain")->where('pd.idProducto', $id)->get();
+    $producto->departamentos = DB::table("Departamento AS D")
+      ->join("CategoriaDepartamento AS CD", "CD.idDepartamento", "D.id")
+      ->join("ProductoCategoria AS PC", "PC.idCategoria", "CD.idCategoria")
+      ->leftJoin("Imagen as I", "I.id", "D.idImagenMain")
+      ->where("PC.idProducto", $id)
+      ->select("D.*", "I.image")
+      ->get();
 
     $producto->categorias = DB::table("ProductoCategoria as pc")
       ->select("c.*", "i.image", "pc.id as idPC")
@@ -606,5 +605,26 @@ class Producto extends Model
       ->join("ProductoImagen AS PI", "I.id", "PI.idImagen")
       ->where("PI.idProducto", $request->productId)
       ->get();
+  }
+
+  public static function addExtraCodes($request) {
+    $productId = $request->productId;
+    foreach ($request->codes as $key => $code) {
+      DB::table("Codigo")->insert([
+        "idProducto" => $productId,
+        "codigo" => $code
+      ]);
+    }
+
+    return ["message" => "Códigos agregados correctamente"];
+  }
+
+  public static function getExtraCodes($productId) {
+    return DB::table("Codigo")->where("idProducto", $productId)->get();
+  }
+
+  public static function deleteExtraCode($codeId) {
+    DB::table("Codigo")->where("id", $codeId)->delete();
+    return ["message" => "Código eliminado correctamente"];
   }
 }

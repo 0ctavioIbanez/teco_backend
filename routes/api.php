@@ -75,6 +75,10 @@ Route::group(["prefix" => "/producto"], function() {
   Route::post("/create-tag", "ProductoController@createTag")->middleware("auth:api");
   Route::post("/delete-tag", "ProductoController@deleteTag")->middleware("auth:api");
   Route::post("/update", "ProductoController@update")->middleware("auth:api");
+  
+  Route::post("/add-extra-codes", "ProductoController@addExtraCodes")->middleware("auth:api");
+  Route::get("/get-extra-codes/{productId}", "ProductoController@getExtraCodes")->middleware("auth:api");
+  Route::delete("/remove-extra-code/{codeId}", "ProductoController@deleteExtraCode")->middleware("auth:api");
 });
 
 // Modelos
