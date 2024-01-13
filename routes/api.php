@@ -64,7 +64,7 @@ Route::group(["prefix" => "/producto"], function() {
   Route::post("/search", "ProductoController@search")->middleware("auth:api");
   Route::get("/search-product/{term?}", "ProductoController@searchProduct")->middleware("auth:api");
   Route::post("/update-color", "ProductoController@updateColor")->middleware("auth:api");
-  Route::post("/create-color", "ProductoController@createColor")->middleware("auth:api");
+  // Route::post("/create-color", "ProductoController@createColor")->middleware("auth:api");
   Route::post("/delete-color", "ProductoController@deleteColor")->middleware("auth:api");
   Route::post("/create-modelo", "ProductoController@createModelo")->middleware("auth:api");
   Route::post("/update-modelo", "ModeloController@update")->middleware("auth:api");

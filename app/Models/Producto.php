@@ -99,54 +99,6 @@ class Producto extends Model
   }
 
 
-  public static function createModelos($request, $idProducto)
-  {
-    // Tallas
-    if (is_array($request["talla"])) {
-      foreach ($request["talla"] as $key => $talla) {
-        DB::table("ProductoTalla")->insert([
-          "idProducto" => $idProducto,
-          "idTalla" => $talla
-        ]);
-      }
-    } else {
-      $idTalla = DB::table("Talla")->insertGetId(["talla" => ucfirst($request["talla"])]);
-      DB::table("ProductoTalla")->insert([
-        "idProducto" => $idProducto,
-        "idTalla" => $idTalla
-      ]);
-    }
-
-    // Colores
-    if (is_array($request["color"])) {
-      foreach ($request["color"] as $key => $color) {
-        DB::table("ProductoColor")->insert(["idProducto" => $idProducto, "idColor" => $color]);
-      }
-    }
-    // else {
-    //   $idColor = DB::table("Color")->insert(["color" => $color]);
-    //   DB::table("ProductoColor")->insert(["idProducto" => $idProducto, "idColor" => $idColor]);
-    // }
-
-    $idModelo = DB::table("Modelos")->insertGetId([
-      "idProducto" => $idProducto,
-      "stock" => $request["stock"],
-      "visibleSinStock" => $request["visibleSinStock"],
-      "visible" => $request["visible"],
-      "costoExtra" => $request["costoExtra"],
-      "precioExtra" => $request["precioExtra"],
-      "idTalla" => $request["talla"]
-    ]);
-
-    // Imágenes
-    foreach ($request['images'] as $key => $image) {
-      DB::table("ModelosImagen")->insert([
-        "idModelo" => $idModelo,
-        "idImagen" => Imagen::upload($image)
-      ]);
-    }
-  }
-
   public static function get($id, $itemsPerPage = 12)
   {
     $producto = DB::table("Producto AS p")->select("*", "p.id AS id");
@@ -195,13 +147,17 @@ class Producto extends Model
 
     $producto->tags = DB::table("ProductoTag as pt")->select("t.*")->join("Tag as t", 't.id', 'pt.idTag')->where('pt.idProducto', $id)->get();
     $producto->tallas = DB::table("ProductoTalla as pt")->select("t.*")->join("Talla as t", "t.id", "pt.idTalla")->where('pt.idProducto', $id)->get();
-    $producto->colores = DB::table("ProductoColor as pc")->select("c.*")->join('Color as c', 'c.id', 'pc.idColor')->where('pc.idProducto', $id)->get();
+    $producto->colores = DB::table('Modelos AS M')->join("ModeloColor AS MC", "MC.idModelo", "M.id")
+        ->join("Color AS C", "C.id", "MC.idColor")
+        ->where("M.idProducto", $id)->select("C.*")->get()->map(fn ($item) => $item->color);
     $producto->imagenes = DB::table("ProductoImagen as pi")->select("i.image", "i.id as idImage")->join("Imagen as i", "i.id", "pi.idImagen")->where('pi.idProducto', $id)->get();
     $modelos = DB::table("Modelos as m")->where("m.idProducto", $id)->get();
 
     foreach ($modelos as $key => $modelo) {
-      $modelo->colores = DB::table("ProductoColor AS PC", "PC.idModelo", "m.id")->select("color", "hex", "idColor")->join("Color as C", "C.id", "PC.idColor")
-        ->where("PC.idModelo", $modelo->id)->get();
+      $modelo->colores = DB::table('Modelos AS M')->join("ModeloColor AS MC", "MC.idModelo", "M.id")
+      ->join("Color AS C", "C.id", "MC.idColor")
+      ->where("M.id", $modelo->id)->select("color", "hex", "MC.idColor")->get();
+
       $modelo->images = DB::table("ModelosImagen as mi")->select("i.image", "i.id")->join("Imagen as i", "i.id", "mi.idImagen")->where("mi.idModelo", $modelo->id)->get();
 
       $modelo->almacen = DB::table("ProductoCelda as pc")
@@ -271,9 +227,13 @@ class Producto extends Model
     if ($request->Colores) {
       $colorId = [];
       foreach ($request->Colores as $key => $color) {
-        $colorId[$key] = DB::table("Color")->select("id")->where("color", $color)->first()->id;
+        $colorId[$key] = DB::table("Color")->select("id")->where("color", $color)->first()?->id;
       }
-      $colorProductsId = DB::table("ProductoColor")->select("idProducto")->whereIn("idColor", $colorId)->get()->map(fn ($item) => $item->idProducto);
+
+      $colorProductsId = DB::table('Modelos AS M')->join("ModeloColor AS MC", "MC.idModelo", "M.id")
+      ->join("Color AS C", "C.id", "MC.idColor")
+      ->select("idProducto")
+      ->whereIn("MC.idColor", $colorId)->get()->map(fn ($item) => $item->idProducto);
     }
 
     // Get Tallas id
@@ -426,7 +386,10 @@ class Producto extends Model
     // Query colors
     if (isset($request->colors)) {
       $colorsId = explode(",", $request->colors);
-      $productsToInclude = DB::table("ProductoColor")->select("idProducto")->groupBy("idProducto");
+
+      $productsToInclude = DB::table('Modelos AS M')->join("ModeloColor AS MC", "MC.idModelo", "M.id")
+        ->select("idProducto")->groupBy("idProducto");
+
       foreach ($colorsId as $key => $colorId) {
         $productsToInclude = $productsToInclude->orWhere("idColor", $colorId);
       }
@@ -483,10 +446,12 @@ class Producto extends Model
         array_push($tags, $_tags);
       }
 
-      $_colors = DB::table("Color AS C")->select("C.color", "C.hex", "C.id as idColor")
-        ->join("ProductoColor AS PC", "PC.idColor", "C.id")
-        ->where("PC.idProducto", $res->id)
+      $_colors = DB::table("ModeloColor AS MC")->join("Color AS C", "C.id", "MC.idColor")
+        ->join("Modelos AS M", "M.id", "MC.idModelo")
+        ->where("M.idProducto", $res->id)
+        ->select("C.color", "C.hex", "C.id as idColor")
         ->get();
+
       $res->colors = $_colors;
 
       if (count($_colors->toArray()) > 0) {
@@ -544,10 +509,10 @@ class Producto extends Model
     $modelos = DB::table("Modelos as M")->where("M.idProducto", $id)->get();
 
     foreach ($modelos as $key => $modelo) {
-      $modelo->colors = DB::table("ProductoColor as pc")
-        ->join("Color as c", "c.id", "pc.idColor")
+      $modelo->colors = DB::table("ModeloColor AS MC")->join("Color AS C", "C.id", "MC.idColor")
         ->select("color", "hex", "idModelo as id")
-        ->where("pc.idModelo", $modelo->id)->get();
+        ->where("MC.idModelo", $modelo->id)
+        ->get();
 
       $modelo->images = DB::table("Imagen as i")
         ->join("ModelosImagen as mi", "i.id", "mi.idImagen")
@@ -599,8 +564,10 @@ class Producto extends Model
           ->select("departamento")->where("idCategoria", $catId)->first()->departamento;
       }
 
-      $colores = DB::table("ProductoColor AS PC")->join("Color as C", "C.id", "PC.idColor")
-        ->select("color")->get()->map(fn ($item) => $item->color);
+      $colores = DB::table('Modelos AS M')->join("ModeloColor AS MC", "MC.idModelo", "M.id")
+        ->join("Color AS C", "C.id", "MC.idColor")
+        ->where("M.idProducto", $id)->select("color")->get()->map(fn ($item) => $item->color);
+
 
       $tags = DB::table('Tag as T')->join("ProductoTag as PT", "PT.idTag", "T.id")->select("tag")
         ->distinct()->where("PT.idProducto", $id)->get()->map(fn ($item) => $item->tag);
